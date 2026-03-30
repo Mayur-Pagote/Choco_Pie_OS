@@ -7,14 +7,17 @@ const PI_DIGITS = '3141592653589793238462643383279502884197169399375105820974944
 
 // Page titles for dynamic render
 const PAGE_MAP = {
-  about: { fn: renderAbout, init: null },
+  about: { fn: renderAbout, init: initLivingUniverse },
   piday: { fn: renderPiDay, init: null },
   raspberrypi: { fn: renderRaspberryPi, init: null },
   piart: { fn: renderPiArt, init: initPiArt },
   symphony: { fn: renderSymphony, init: initSymphony },
   explorer: { fn: renderExplorer, init: initExplorer },
   simulation: { fn: renderSimulation, init: initSimulation },
-  games: { fn: renderGames, init: initGames }
+  games: { fn: renderGames, init: initGames },
+  quiz: { fn: renderQuiz, init: initQuiz },
+  mandala: { fn: renderMandala, init: initMandala },
+  gallery: { fn: renderGallery, init: initGallery }
 };
 
 let activePage = 'about';
@@ -51,14 +54,44 @@ document.querySelectorAll('.nav-item').forEach(item => {
   item.addEventListener('click', () => navigateTo(item.dataset.page));
 });
 
-// ---- Light Mode Toggle ----
-const lightToggle = document.getElementById('light-mode-toggle');
-let isLightMode = false;
+// ---- Theme Toggle ----
+const THEME_STORAGE_KEY = 'pi-site-theme';
+const themeToggle = document.getElementById('theme-toggle');
+const themeToggleLabel = document.getElementById('theme-toggle-label');
 
-lightToggle.addEventListener('click', () => {
-  isLightMode = !isLightMode;
+function applyTheme(theme) {
+  const isLightMode = theme === 'light';
+
+  document.documentElement.setAttribute('data-theme', theme);
   document.body.classList.toggle('light-mode', isLightMode);
-});
+
+  if (themeToggle) {
+    themeToggle.setAttribute('aria-pressed', String(isLightMode));
+    themeToggle.setAttribute(
+      'aria-label',
+      isLightMode ? 'Switch to dark mode' : 'Switch to light mode'
+    );
+  }
+
+  if (themeToggleLabel) {
+    themeToggleLabel.innerHTML = isLightMode
+      ? '<i class="fa-regular fa-moon"></i> Dark Mode'
+      : '<i class="fa-regular fa-sun"></i> Light Mode';
+  }
+}
+
+function getInitialTheme() {
+  const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+  return savedTheme === 'light' || savedTheme === 'dark' ? savedTheme : 'dark';
+}
+
+if (themeToggle) {
+  themeToggle.addEventListener('click', () => {
+    const nextTheme = document.body.classList.contains('light-mode') ? 'dark' : 'light';
+    applyTheme(nextTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  });
+}
 
 // ---- Footer nav clicks (delegate) ----
 document.addEventListener('click', (e) => {
@@ -93,6 +126,9 @@ function getFooterHTML() {
           <a data-nav="explorer">Pi Explorer</a>
           <a data-nav="simulation">Simulation</a>
           <a data-nav="games">Games</a>
+          <a data-nav="quiz">Pi Quiz</a>
+          <a data-nav="mandala">Infinite Zoom Pi Mandala</a>
+          <a data-nav="gallery">Gallery</a>
         </div>
       </div>
       </div>
@@ -103,5 +139,6 @@ function getFooterHTML() {
 
 // ---- Init ----
 document.addEventListener('DOMContentLoaded', () => {
+  applyTheme(getInitialTheme());
   navigateTo('about');
 });

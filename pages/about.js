@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    PAGES/ABOUT.JS — About Pi Section
    ============================================================ */
 
@@ -85,6 +85,39 @@ function renderAbout() {
       </div>
     </div>
 
+    <!-- Pi as a Living Universe -->
+    <div class="living-universe">
+      <div class="living-header">
+        <span class="pill pill-blue">Visualization</span>
+        <h2 class="page-title" style="font-size:28px;margin-bottom:6px;">Pi as a Living Universe</h2>
+        <p class="page-subtitle" style="max-width:700px;">
+          Turn Pi into a cosmic system where every digit becomes a star system, mapped into a spiral galaxy with glowing pathways.
+        </p>
+      </div>
+      <div class="living-grid">
+        <div class="living-canvas-wrap">
+          <canvas id="pi-universe-canvas" aria-label="Pi universe visualization"></canvas>
+          <div class="living-overlay">Spiral of digits - connected as a glowing path</div>
+        </div>
+        <div class="living-side">
+          <div class="living-rules">
+            <div class="living-rules-title"><i class="fa-solid fa-sparkles"></i> Cosmic Rules</div>
+            <ul class="living-rules-list">
+              <li>Each digit becomes a <strong>star system</strong></li>
+              <li>Digits orbit in a <strong>spiral galaxy</strong></li>
+              <li>Digit value controls <strong>size</strong> (0 small to 9 large)</li>
+              <li>Digit value controls <strong>color + brightness</strong></li>
+              <li>Sequential digits connect into a <strong>glowing path</strong></li>
+            </ul>
+          </div>
+          <div class="living-zoom">
+            <div class="living-zoom-title">Zoomed-in Galaxy Slice</div>
+            <canvas id="pi-universe-zoom" aria-label="Zoomed-in pi galaxy"></canvas>
+            <div class="living-zoom-caption">A moving window drifts across the digits like a traveling telescope.</div>
+          </div>
+        </div>
+      </div>
+    </div>
     <!-- Common Uses + Interesting Facts -->
     <div class="two-col" style="margin-bottom:0;">
       <div class="card">
@@ -116,3 +149,128 @@ function renderAbout() {
   </div>
   ${getFooterHTML()}`;
 }
+let livingUniverseStarted = false;
+
+function initLivingUniverse() {
+  if (livingUniverseStarted) return;
+  const mainCanvas = document.getElementById('pi-universe-canvas');
+  const zoomCanvas = document.getElementById('pi-universe-zoom');
+  if (!mainCanvas || !zoomCanvas || typeof PI_DIGITS !== 'string') return;
+
+  livingUniverseStarted = true;
+
+  const dpr = window.devicePixelRatio || 1;
+  const mainCtx = mainCanvas.getContext('2d');
+  const zoomCtx = zoomCanvas.getContext('2d');
+
+  const digits = PI_DIGITS.slice(0, 900).split('').map(Number);
+  const basePoints = digits.map((digit, i) => {
+    const angle = i * 0.38;
+    const radius = Math.sqrt(i + 1) * 6.5;
+    return { digit, angle, radius };
+  });
+
+  const palette = [
+    '#5A8BFF',
+    '#6ED5FF',
+    '#5CFFCC',
+    '#8DFF7C',
+    '#FFE66D',
+    '#FFB86B',
+    '#FF8A5B',
+    '#FF6FB1',
+    '#B577FF',
+    '#8E6BFF'
+  ];
+
+  function resizeCanvas(canvas, ctx) {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return rect;
+  }
+
+  function drawBackground(ctx, rect, bright = 1) {
+    const grad = ctx.createRadialGradient(
+      rect.width * 0.5, rect.height * 0.5, 20,
+      rect.width * 0.5, rect.height * 0.5, rect.width * 0.7
+    );
+    const innerAlpha = 0.9 * bright;
+    const outerAlpha = 0.98 * bright;
+    grad.addColorStop(0, 'rgba(12, 18, 46, ' + innerAlpha + ')');
+    grad.addColorStop(1, 'rgba(4, 7, 20, ' + outerAlpha + ')');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, rect.width, rect.height);
+  }
+
+  function drawGalaxy(ctx, rect, time, zoomStart = 0, zoomCount = digits.length, zoomScale = 1) {
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    drawBackground(ctx, rect, zoomScale === 1 ? 1 : 0.85);
+
+    const centerX = rect.width * 0.5;
+    const centerY = rect.height * 0.5;
+    const breath = 1 + Math.sin(time * 0.0012) * 0.02;
+    const rotation = time * 0.00015;
+
+    const slice = basePoints.slice(zoomStart, zoomStart + zoomCount);
+    const maxRadius = slice[slice.length - 1]?.radius || 1;
+    const scale = Math.min(rect.width, rect.height) / (maxRadius * 2.2) * zoomScale;
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(110, 180, 255, 0.08)';
+    ctx.beginPath();
+    slice.forEach((point, i) => {
+      const angle = point.angle + rotation;
+      const r = point.radius * scale * breath;
+      const x = centerX + Math.cos(angle) * r;
+      const y = centerY + Math.sin(angle) * r;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    slice.forEach((point, i) => {
+      const angle = point.angle + rotation;
+      const r = point.radius * scale * breath;
+      const x = centerX + Math.cos(angle) * r;
+      const y = centerY + Math.sin(angle) * r;
+      const size = 0.8 + point.digit * 0.45;
+      const glow = 0.35 + (point.digit / 12);
+      const flicker = 0.7 + 0.3 * Math.sin(time * 0.002 + i * 0.17);
+
+      ctx.beginPath();
+      ctx.fillStyle = palette[point.digit];
+      ctx.globalAlpha = glow * flicker;
+      ctx.shadowColor = palette[point.digit];
+      ctx.shadowBlur = 10 + point.digit * 2.2;
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+  }
+
+  function animate(time) {
+    const mainRect = resizeCanvas(mainCanvas, mainCtx);
+    const zoomRect = resizeCanvas(zoomCanvas, zoomCtx);
+
+    drawGalaxy(mainCtx, mainRect, time);
+
+    const windowSize = Math.min(160, digits.length - 1);
+    const start = Math.floor((time * 0.02) % (digits.length - windowSize));
+    drawGalaxy(zoomCtx, zoomRect, time * 1.3, start, windowSize, 1.35);
+
+    requestAnimationFrame(animate);
+  }
+
+  requestAnimationFrame(animate);
+
+  window.addEventListener('resize', () => {
+    resizeCanvas(mainCanvas, mainCtx);
+    resizeCanvas(zoomCanvas, zoomCtx);
+  }, { passive: true });
+}
+
+

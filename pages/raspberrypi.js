@@ -14,6 +14,15 @@ function renderRaspberryPi() {
       <div class="divider-line"><span></span><span></span></div>
     </div>
 
+    <div class="card rpi-intro-card">
+      <div class="section-heading" style="margin-bottom:10px;"><i class="fa-solid fa-circle-info" style="color:var(--orange);margin-right:8px;"></i>What is Raspberry Pi?</div>
+      <p class="card-text">
+        Raspberry Pi is a family of low-cost computers created by the Raspberry Pi Foundation, established in 2008 by
+        Alan Mycroft, David Braben, Eben Upton, Jack Lang, Pete Lomas, and Rob Mullins. Their goal was to build an affordable,
+        programmable computer — priced like a textbook — to remove cost barriers and inspire more young people to learn computing.
+      </p>
+    </div>
+
     <!-- Horizontal Timeline -->
     <div class="card" style="margin-bottom:24px;overflow:visible;">
       <div class="section-heading"><i class="fa-solid fa-timeline" style="color:var(--orange);margin-right:8px;"></i>Development Timeline</div>
@@ -109,40 +118,55 @@ function renderRaspberryPi() {
     <div class="card" style="margin-top:24px;margin-bottom:0;">
       <div class="section-heading"><i class="fa-solid fa-table-cells" style="color:var(--orange);margin-right:8px;"></i>Quick Specs Comparison</div>
       <div style="overflow-x:auto;">
-        <table style="width:100%;border-collapse:collapse;font-size:13.5px;">
+        <table class="rpi-compare-table">
           <thead>
-            <tr style="background:#F5F7FA;">
-              <th style="text-align:left;padding:10px 14px;color:var(--text-dark);font-weight:600;border-bottom:2px solid var(--border);">Model</th>
-              <th style="text-align:left;padding:10px 14px;color:var(--text-dark);font-weight:600;border-bottom:2px solid var(--border);">CPU</th>
-              <th style="text-align:left;padding:10px 14px;color:var(--text-dark);font-weight:600;border-bottom:2px solid var(--border);">Max RAM</th>
-              <th style="text-align:left;padding:10px 14px;color:var(--text-dark);font-weight:600;border-bottom:2px solid var(--border);">Price (from)</th>
+            <tr>
+              <th>Model</th>
+              <th>Series</th>
+              <th>Type</th>
+              <th>Notes</th>
             </tr>
           </thead>
           <tbody>
-            <tr style="border-bottom:1px solid var(--border);">
-              <td style="padding:10px 14px;font-weight:600;color:var(--orange);">Pi 5</td>
-              <td style="padding:10px 14px;color:var(--text-mid);">Cortex-A76 @ 2.4GHz</td>
-              <td style="padding:10px 14px;color:var(--text-mid);">8 GB</td>
-              <td style="padding:10px 14px;color:var(--text-mid);">$60</td>
-            </tr>
-            <tr style="border-bottom:1px solid var(--border);background:#fafafa;">
-              <td style="padding:10px 14px;font-weight:600;color:var(--text-dark);">Pi 4 Model B</td>
-              <td style="padding:10px 14px;color:var(--text-mid);">Cortex-A72 @ 1.8GHz</td>
-              <td style="padding:10px 14px;color:var(--text-mid);">8 GB</td>
-              <td style="padding:10px 14px;color:var(--text-mid);">$35</td>
-            </tr>
-            <tr style="border-bottom:1px solid var(--border);">
-              <td style="padding:10px 14px;font-weight:600;color:var(--text-dark);">Pi Zero 2W</td>
-              <td style="padding:10px 14px;color:var(--text-mid);">Cortex-A53 @ 1.0GHz</td>
-              <td style="padding:10px 14px;color:var(--text-mid);">512 MB</td>
-              <td style="padding:10px 14px;color:var(--text-mid);">$15</td>
-            </tr>
-            <tr>
-              <td style="padding:10px 14px;font-weight:600;color:var(--text-dark);">Pi Pico 2</td>
-              <td style="padding:10px 14px;color:var(--text-mid);">RP2350 Cortex-M33</td>
-              <td style="padding:10px 14px;color:var(--text-mid);">520 KB SRAM</td>
-              <td style="padding:10px 14px;color:var(--text-mid);">$5</td>
-            </tr>
+            <tr class="rpi-group-row"><td colspan="4">Flagship SBCs</td></tr>
+            <tr><td>Raspberry Pi Model B</td><td>Flagship</td><td>Single-board computer</td><td>Model B (Ethernet)</td></tr>
+            <tr><td>Raspberry Pi Model A</td><td>Flagship</td><td>Single-board computer</td><td>Model A (no Ethernet)</td></tr>
+            <tr><td>Raspberry Pi Model B+</td><td>Flagship</td><td>Single-board computer</td><td>Model B (Ethernet)</td></tr>
+            <tr><td>Raspberry Pi Model A+</td><td>Flagship</td><td>Single-board computer</td><td>Model A (no Ethernet)</td></tr>
+            <tr><td>Raspberry Pi 2 Model B</td><td>Flagship</td><td>Single-board computer</td><td>Model B (Ethernet)</td></tr>
+            <tr><td>Raspberry Pi 3 Model B</td><td>Flagship</td><td>Single-board computer</td><td>Model B (Ethernet)</td></tr>
+            <tr><td>Raspberry Pi 3 Model B+</td><td>Flagship</td><td>Single-board computer</td><td>Model B (Ethernet)</td></tr>
+            <tr><td>Raspberry Pi 3 Model A+</td><td>Flagship</td><td>Single-board computer</td><td>Model A (no Ethernet)</td></tr>
+            <tr><td>Raspberry Pi 4 Model B</td><td>Flagship</td><td>Single-board computer</td><td>Model B (Ethernet)</td></tr>
+            <tr><td>Raspberry Pi 400</td><td>Keyboard</td><td>Keyboard computer</td><td>All-in-one</td></tr>
+            <tr><td>Raspberry Pi 500</td><td>Keyboard</td><td>Keyboard computer</td><td>All-in-one</td></tr>
+            <tr><td>Raspberry Pi 500+</td><td>Keyboard</td><td>Keyboard computer</td><td>All-in-one</td></tr>
+            <tr><td>Raspberry Pi 5</td><td>Flagship</td><td>Single-board computer</td><td>Model B (Ethernet)</td></tr>
+
+            <tr class="rpi-group-row"><td colspan="4">Zero Series</td></tr>
+            <tr><td>Raspberry Pi Zero</td><td>Zero</td><td>Compact SBC</td><td>Base model</td></tr>
+            <tr><td>Raspberry Pi Zero W</td><td>Zero</td><td>Compact SBC</td><td>Wireless</td></tr>
+            <tr><td>Raspberry Pi Zero WH</td><td>Zero</td><td>Compact SBC</td><td>Wireless + headers</td></tr>
+            <tr><td>Raspberry Pi Zero 2 W</td><td>Zero</td><td>Compact SBC</td><td>Wireless</td></tr>
+
+            <tr class="rpi-group-row"><td colspan="4">Compute Module Series</td></tr>
+            <tr><td>Raspberry Pi Compute Module 1</td><td>Compute Module</td><td>Embedded module</td><td>Baseboard required</td></tr>
+            <tr><td>Raspberry Pi Compute Module 3</td><td>Compute Module</td><td>Embedded module</td><td>Baseboard required</td></tr>
+            <tr><td>Raspberry Pi Compute Module 3+</td><td>Compute Module</td><td>Embedded module</td><td>Baseboard required</td></tr>
+            <tr><td>Raspberry Pi Compute Module 4S</td><td>Compute Module</td><td>Embedded module</td><td>SO-DIMM form factor</td></tr>
+            <tr><td>Raspberry Pi Compute Module 4</td><td>Compute Module</td><td>Embedded module</td><td>Optional wireless</td></tr>
+            <tr><td>Raspberry Pi Compute Module 5</td><td>Compute Module</td><td>Embedded module</td><td>Latest generation</td></tr>
+            <tr><td>Raspberry Pi Compute Module Zero</td><td>Compute Module</td><td>Embedded module</td><td>Zero 2 W core</td></tr>
+
+            <tr class="rpi-group-row"><td colspan="4">Pico Microcontrollers</td></tr>
+            <tr><td>Raspberry Pi Pico</td><td>Pico</td><td>Microcontroller</td><td>No Linux</td></tr>
+            <tr><td>Raspberry Pi Pico H</td><td>Pico</td><td>Microcontroller</td><td>Presoldered headers</td></tr>
+            <tr><td>Raspberry Pi Pico W</td><td>Pico</td><td>Microcontroller</td><td>Wireless</td></tr>
+            <tr><td>Raspberry Pi Pico WH</td><td>Pico</td><td>Microcontroller</td><td>Wireless + headers</td></tr>
+            <tr><td>Raspberry Pi Pico 2</td><td>Pico 2</td><td>Microcontroller</td><td>No wireless</td></tr>
+            <tr><td>Raspberry Pi Pico 2 with headers</td><td>Pico 2</td><td>Microcontroller</td><td>Presoldered headers</td></tr>
+            <tr><td>Raspberry Pi Pico 2 W</td><td>Pico 2</td><td>Microcontroller</td><td>Wireless</td></tr>
+            <tr><td>Raspberry Pi Pico 2 W with headers</td><td>Pico 2</td><td>Microcontroller</td><td>Wireless + headers</td></tr>
           </tbody>
         </table>
       </div>

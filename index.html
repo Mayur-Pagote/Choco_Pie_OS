@@ -60,6 +60,18 @@
           <i class="fa-solid fa-gamepad nav-icon"></i>
           <span>Games</span>
         </li>
+        <li class="nav-item" data-page="quiz">
+          <i class="fa-solid fa-circle-question nav-icon"></i>
+          <span>Pi Quiz</span>
+        </li>
+        <li class="nav-item" data-page="mandala">
+          <i class="fa-solid fa-wand-magic-sparkles nav-icon"></i>
+          <span>Infinite Zoom Pi Mandala</span>
+        </li>
+        <li class="nav-item" data-page="gallery">
+          <i class="fa-solid fa-images nav-icon"></i>
+          <span>Gallery</span>
+        </li>
       </ul>
     </nav>
 
@@ -75,12 +87,12 @@
           08128 48111 74502 84102 70193 85211
         </div>
       </div>
-      <div class="light-mode-toggle" id="light-mode-toggle">
-        <div class="toggle-switch" id="toggle-switch">
-          <div class="toggle-knob" id="toggle-knob"></div>
+      <button class="light-mode-toggle" id="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to light mode">
+        <div class="toggle-switch" aria-hidden="true">
+          <div class="toggle-knob"></div>
         </div>
-        <span class="toggle-label"><i class="fa-regular fa-sun"></i> Light Mode</span>
-      </div>
+        <span class="toggle-label" id="theme-toggle-label"><i class="fa-regular fa-sun"></i> Light Mode</span>
+      </button>
     </div>
   </aside>
 
@@ -111,6 +123,15 @@
     <!-- Games -->
     <section id="page-games" class="page-section"></section>
 
+    <!-- Pi Quiz -->
+    <section id="page-quiz" class="page-section"></section>
+
+    <!-- Infinite Zoom Pi Mandala -->
+    <section id="page-mandala" class="page-section"></section>
+
+    <!-- Gallery -->
+    <section id="page-gallery" class="page-section"></section>
+
   </main>
 
   <!-- Scripts -->
@@ -122,6 +143,9 @@
   <script src="pages/explorer.js"></script>
   <script src="pages/simulation.js"></script>
   <script src="pages/games.js"></script>
+  <script src="pages/quiz.js"></script>
+  <script src="pages/mandala.js"></script>
+  <script src="pages/gallery.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
