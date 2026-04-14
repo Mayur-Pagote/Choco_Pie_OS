@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>PIXEL RIDDLES — The Quest</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden}
+:root{
+  --black:#07070f;--dark:#0e0e1c;--panel:#13132b;--border:#1e1e3f;
+  --green:#00ff88;--green2:#00cc6a;--cyan:#00e5ff;--yellow:#ffe600;
+  --red:#ff3860;--purple:#b044ff;--orange:#ff8c00;
+  --white:#dde3f0;--grey:#55557a;--dim:#2a2a50;
+  --pixel:'Press Start 2P',monospace;
+  --vt:'VT323','Courier New',monospace;
+}
+body{background:var(--black);color:var(--white);font-family:var(--pixel);}
+body::before{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.13) 3px,rgba(0,0,0,.13) 4px);}
+body::after{content:'';position:fixed;inset:0;z-index:9998;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(0,0,0,.65)100%);}
+.screen{position:fixed;inset:0;z-index:10;display:none;flex-direction:column;
+  align-items:center;justify-content:center;opacity:0;transition:opacity .3s;overflow-y:auto;}
+.screen.active{display:flex;opacity:1}
+#s-title{
+  background:var(--black);
+  background-image:
+    radial-gradient(ellipse at 20% 20%,rgba(0,255,136,.07)0%,transparent 55%),
+    radial-gradient(ellipse at 80% 80%,rgba(176,68,255,.07)0%,transparent 55%),
+    linear-gradient(var(--dim) 1px,transparent 1px),
+    linear-gradient(90deg,var(--dim) 1px,transparent 1px);
+  background-size:100% 100%,100% 100%,38px 38px,38px 38px;}
+.title-wrap{text-align:center;display:flex;flex-direction:column;align-items:center;
+  gap:18px;padding:30px 24px;position:relative;z-index:2;}
+.title-gem{font-size:clamp(48px,10vw,72px);animation:bob 3s ease-in-out infinite;
+  filter:drop-shadow(0 0 20px #00ff88) drop-shadow(0 0 50px #00ff8855);}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.title-main{font-family:var(--pixel);font-size:clamp(20px,5vw,42px);line-height:1.5;
+  color:var(--green);text-shadow:0 0 8px #00ff88,0 0 28px #00ff8855,4px 4px 0 #005533;letter-spacing:3px;}
+.title-main span{color:var(--yellow);text-shadow:0 0 8px #ffe600,0 0 28px #ffe60055,4px 4px 0 #665500;}
+.title-sub{font-family:var(--vt);font-size:clamp(20px,4vw,32px);color:var(--cyan);
+  letter-spacing:10px;text-shadow:0 0 12px #00e5ff;}
+.title-tag{font-family:var(--vt);font-size:clamp(16px,3vw,22px);color:var(--grey);letter-spacing:2px;}
+.title-foot{font-family:var(--vt);font-size:clamp(13px,2.5vw,17px);color:var(--dim);letter-spacing:1px;}
+.btn-col{display:flex;flex-direction:column;align-items:center;gap:14px;margin-top:4px;}
+.deco{position:fixed;font-size:clamp(22px,4vw,40px);pointer-events:none;z-index:1;
+  animation:drift 5s ease-in-out infinite;opacity:.45;filter:drop-shadow(0 0 8px currentColor);}
+.d1{top:8%;left:6%;color:#00ff88;animation-delay:0s;animation-duration:6.2s}
+.d2{top:12%;right:8%;color:#b044ff;animation-delay:1.2s;animation-duration:5s}
+.d3{bottom:22%;left:10%;color:#00e5ff;animation-delay:.6s;animation-duration:7.2s}
+.d4{top:55%;right:6%;color:#ffe600;animation-delay:2s;animation-duration:5.5s}
+.d5{bottom:10%;right:12%;color:#ff3860;animation-delay:1.8s;animation-duration:6.8s}
+@keyframes drift{0%,100%{transform:translateY(0)rotate(-3deg)}33%{transform:translateY(-18px)rotate(4deg)}66%{transform:translateY(8px)rotate(-2deg)}}
+.btn{font-family:var(--pixel);font-size:clamp(7px,1.5vw,10px);padding:14px 30px;
+  border:none;cursor:pointer;text-transform:uppercase;letter-spacing:2px;
+  position:relative;transition:transform .08s,filter .12s;outline:none;}
+.btn:active{transform:translate(2px,2px)!important;}
+.btn-green{background:var(--green);color:var(--black);
+  box-shadow:4px 4px 0 var(--green2),0 0 18px #00ff8833;}
+.btn-green:hover{filter:brightness(1.12);transform:translate(-1px,-1px);}
+.btn-outline{background:transparent;color:var(--cyan);border:3px solid var(--cyan);
+  box-shadow:4px 4px 0 #005566;}
+.btn-outline:hover{background:var(--cyan);color:var(--black);}
+.btn-purple{background:var(--purple);color:#fff;
+  box-shadow:4px 4px 0 #660099,0 0 16px #b044ff33;}
+.btn-purple:hover{filter:brightness(1.1);transform:translate(-1px,-1px);}
+.btn-yellow{background:var(--yellow);color:var(--black);font-size:clamp(6px,1.2vw,9px);
+  padding:11px 20px;box-shadow:3px 3px 0 #887700;}
+.btn-yellow:hover{filter:brightness(1.1);}
+.btn-yellow:disabled{opacity:.35;cursor:not-allowed;transform:none!important;}
+.btn-sm{font-size:clamp(6px,1.2vw,8px);padding:9px 14px;background:var(--panel);
+  color:var(--grey);border:2px solid var(--grey);}
+.btn-sm:hover{color:var(--white);border-color:var(--white);}
+.btn-red{color:var(--red)!important;border-color:var(--red)!important;}
+.btn-red:hover{background:var(--red)!important;color:#fff!important;}
+#s-howto{background:rgba(7,7,15,.94);backdrop-filter:blur(8px);}
+.modal{background:var(--panel);border:3px solid var(--cyan);
+  box-shadow:6px 6px 0 #005566,0 0 30px #00e5ff22;
+  padding:clamp(24px,5vw,36px) clamp(20px,5vw,32px);
+  max-width:500px;width:91%;text-align:center;
+  animation:popIn .4s cubic-bezier(.34,1.56,.64,1);}
+@keyframes popIn{from{transform:scale(.5)rotate(-4deg);opacity:0}to{transform:scale(1)rotate(0);opacity:1}}
+.modal h2{font-family:var(--pixel);font-size:clamp(12px,3vw,18px);
+  color:var(--cyan);text-shadow:0 0 12px #00e5ff;margin-bottom:24px;}
+.steps{display:flex;flex-direction:column;gap:14px;text-align:left;margin-bottom:20px;}
+.step{display:flex;align-items:center;gap:14px;
+  border-left:3px solid var(--cyan);padding-left:14px;}
+.step-icon{font-size:26px;min-width:32px;}
+.step p{font-family:var(--vt);font-size:clamp(17px,3.5vw,22px);color:var(--white);}
+.howto-note{font-family:var(--pixel);font-size:clamp(6px,1.3vw,8px);color:var(--yellow);
+  padding:12px;border:2px dashed var(--yellow);margin-bottom:22px;}
+.hud{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;
+  justify-content:space-between;padding:10px 20px;
+  background:linear-gradient(180deg,#06060e 0%,#0e0e1c 100%);
+  border-bottom:3px solid var(--green);box-shadow:0 4px 22px #00ff8820;}
+.hud-block{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.hud-lbl{font-family:var(--pixel);font-size:clamp(5px,1vw,7px);color:var(--grey);letter-spacing:2px;}
+.hud-val{font-family:var(--pixel);font-size:clamp(13px,3.2vw,21px);color:var(--green);text-shadow:0 0 10px #00ff88;}
+.star-row{font-size:clamp(17px,4.5vw,26px);letter-spacing:5px;filter:drop-shadow(0 0 7px #ffe600);}
+.prog-wrap{position:fixed;top:58px;left:0;right:0;z-index:99;height:8px;
+  background:var(--dim);border-bottom:2px solid var(--border);}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--cyan));
+  transition:width .6s cubic-bezier(.4,0,.2,1);box-shadow:0 0 12px #00ff88;}
+.prog-dots{position:absolute;top:-15px;left:0;right:0;
+  display:flex;justify-content:space-around;padding:0 16px;}
+.pdot{width:10px;height:10px;background:var(--dim);border:2px solid var(--grey);transition:all .3s;}
+.pdot.done{background:var(--green);border-color:var(--green);box-shadow:0 0 7px #00ff88;}
+.pdot.now{background:var(--yellow);border-color:var(--yellow);animation:blink 1s step-end infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+#s-game{background:radial-gradient(ellipse at 50% 0%,#0c180c 0%,var(--black) 68%);
+  justify-content:flex-start;padding:70px 0 70px;overflow-y:auto;}
+.riddle-card{background:var(--panel);border:3px solid var(--green);
+  box-shadow:6px 6px 0 #003322,0 0 26px #00ff8812;
+  padding:clamp(16px,4vw,28px);max-width:660px;width:93%;
+  margin:16px auto;animation:slideUp .4s cubic-bezier(.4,0,.2,1);position:relative;}
+@keyframes slideUp{from{transform:translateY(28px);opacity:0}to{transform:translateY(0);opacity:1}}
+.riddle-card::before,.riddle-card::after{content:'◼';position:absolute;font-size:10px;
+  color:var(--green);text-shadow:0 0 7px #00ff88;}
+.riddle-card::before{top:-14px;left:-14px;}
+.riddle-card::after{bottom:-14px;right:-14px;}
+.scene{width:100%;height:clamp(100px,18vw,128px);position:relative;overflow:hidden;
+  border:2px solid var(--dim);margin-bottom:16px;
+  display:flex;align-items:center;justify-content:center;}
+.scene-stars{position:absolute;inset:0;}
+.scene-emojis{position:absolute;inset:0;z-index:2;display:flex;
+  align-items:center;justify-content:center;gap:clamp(14px,4vw,34px);}
+.se{font-size:clamp(30px,7vw,50px);animation:bob 2.5s ease-in-out infinite;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.8));}
+.se:nth-child(1){animation-delay:0s;animation-duration:3.2s;}
+.se:nth-child(2){animation-delay:.5s;animation-duration:2.5s;}
+.se:nth-child(3){animation-delay:1s;animation-duration:3.8s;}
+.scene-ground{position:absolute;bottom:0;left:0;right:0;height:18px;z-index:1;
+  background:repeating-linear-gradient(90deg,#1a2e1a 0,#1a2e1a 12px,#0f1f0f 12px,#0f1f0f 24px);
+  border-top:2px solid #2a4a2a;}
+.scene-tag{position:absolute;top:5px;right:8px;z-index:3;
+  font-family:var(--pixel);font-size:clamp(4px,1vw,6px);color:var(--grey);}
+.cat-badge{display:inline-block;font-family:var(--pixel);font-size:clamp(6px,1.2vw,8px);
+  color:var(--black);background:var(--cyan);padding:5px 12px;margin-bottom:10px;
+  box-shadow:2px 2px 0 #005566;letter-spacing:1px;}
+.riddle-num{font-family:var(--pixel);font-size:clamp(6px,1.2vw,8px);color:var(--grey);margin-bottom:14px;}
+.riddle-txt{font-family:var(--vt);font-size:clamp(18px,4vw,26px);color:var(--white);
+  line-height:1.65;margin-bottom:20px;border-left:4px solid var(--yellow);
+  padding-left:14px;text-shadow:0 0 3px rgba(255,255,255,.07);}
+.hint-sec{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.hint-box{font-family:var(--vt);font-size:clamp(15px,3.5vw,20px);color:var(--yellow);
+  padding:0 14px;background:rgba(255,230,0,.05);border:2px solid var(--yellow);
+  max-height:0;overflow:hidden;opacity:0;transition:max-height .35s,padding .35s,opacity .35s;}
+.hint-box.open{max-height:120px;padding:10px 14px;opacity:1;}
+.ans-row{display:flex;gap:10px;margin-bottom:14px;align-items:stretch;}
+.pixel-input{flex:1;font-family:var(--pixel);font-size:clamp(9px,2vw,13px);
+  padding:14px 16px;background:var(--black);color:var(--green);
+  border:3px solid var(--grey);outline:none;text-transform:uppercase;
+  letter-spacing:3px;transition:border-color .2s,box-shadow .2s;}
+.pixel-input:focus{border-color:var(--green);box-shadow:0 0 12px #00ff8844;}
+.pixel-input::placeholder{color:var(--dim);}
+.slots{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;margin-top:10px;}
+.slot{width:clamp(26px,6vw,34px);height:clamp(30px,7vw,38px);background:var(--dim);
+  border:2px solid var(--grey);display:flex;align-items:center;justify-content:center;
+  font-family:var(--pixel);font-size:clamp(10px,2.5vw,14px);color:var(--green);
+  text-transform:uppercase;transition:all .15s;}
+.slot.lit{border-color:var(--green);background:rgba(0,255,136,.08);box-shadow:0 0 7px #00ff8866;}
+.slot.space{background:transparent;border-color:transparent;width:14px;}
+.feedback{font-family:var(--pixel);font-size:clamp(7px,1.5vw,9px);
+  min-height:28px;text-align:center;padding:8px;transition:all .2s;}
+.feedback.ok{color:var(--green);text-shadow:0 0 8px #00ff88;animation:fbPop .4s ease;}
+.feedback.no{color:var(--red);text-shadow:0 0 8px #ff3860;}
+@keyframes fbPop{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+.nav{position:fixed;bottom:0;left:0;right:0;z-index:100;display:flex;
+  justify-content:space-between;padding:10px 20px;
+  background:linear-gradient(0deg,#06060e 0%,#0e0e1c 100%);border-top:2px solid var(--border);}
+#s-win{background:rgba(7,7,15,.94);backdrop-filter:blur(8px);}
+.win-box{background:var(--panel);border:4px solid var(--green);
+  box-shadow:8px 8px 0 #003322,0 0 34px #00ff8820;
+  padding:clamp(22px,5vw,38px) clamp(20px,5vw,44px);text-align:center;
+  max-width:500px;width:91%;position:relative;overflow:hidden;
+  animation:popIn .5s cubic-bezier(.34,1.56,.64,1);}
+.win-title{font-family:var(--pixel);font-size:clamp(18px,5vw,34px);color:var(--green);
+  text-shadow:0 0 14px #00ff88;margin-bottom:14px;animation:flicker 3s linear infinite;}
+@keyframes flicker{0%,19%,21%,54%,56%,100%{opacity:1}20%,22%,55%{opacity:.6}}
+.win-stars-row{font-size:clamp(28px,7vw,44px);letter-spacing:8px;margin-bottom:14px;
+  animation:starPop .6s ease .3s both;filter:drop-shadow(0 0 9px #ffe600);}
+@keyframes starPop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.win-answer-lbl{font-family:var(--vt);font-size:clamp(20px,4vw,28px);color:var(--cyan);
+  text-shadow:0 0 9px #00e5ff;margin-bottom:10px;}
+.win-fact{font-family:var(--vt);font-size:clamp(14px,3vw,19px);color:var(--grey);
+  line-height:1.55;border-top:2px dashed var(--dim);padding-top:14px;margin-bottom:18px;}
+.win-pts{font-family:var(--pixel);font-size:clamp(12px,3vw,18px);color:var(--yellow);
+  text-shadow:0 0 9px #ffe600;margin-bottom:22px;}
+.conf{position:absolute;width:8px;height:8px;animation:confFall .9s ease-out forwards;}
+@keyframes confFall{0%{transform:translateY(0)rotate(0);opacity:1}100%{transform:translateY(130px)rotate(540deg);opacity:0}}
+#s-gameover{background:var(--black);
+  background-image:radial-gradient(ellipse at 50% 40%,rgba(255,230,0,.07)0%,transparent 60%),
+    linear-gradient(var(--dim) 1px,transparent 1px),
+    linear-gradient(90deg,var(--dim) 1px,transparent 1px);
+  background-size:100%,38px 38px,38px 38px;}
+.go-box{text-align:center;display:flex;flex-direction:column;align-items:center;
+  gap:14px;padding:30px 24px;animation:popIn .6s ease;}
+.trophy{font-size:clamp(60px,14vw,88px);animation:trophySpin 3s ease-in-out infinite;
+  filter:drop-shadow(0 0 26px #ffe600);}
+@keyframes trophySpin{0%,100%{transform:scale(1)rotate(-2deg)}50%{transform:scale(1.08)rotate(2deg)}}
+.go-title{font-family:var(--pixel);font-size:clamp(26px,7vw,52px);color:var(--yellow);
+  text-shadow:0 0 16px #ffe600,4px 4px 0 #664400;animation:flicker 2s linear infinite;}
+.go-sub{font-family:var(--vt);font-size:clamp(18px,4vw,28px);color:var(--cyan);letter-spacing:3px;}
+.go-score-lbl{font-family:var(--pixel);font-size:clamp(6px,1.3vw,9px);color:var(--grey);letter-spacing:3px;margin-top:6px;}
+.go-score{font-family:var(--pixel);font-size:clamp(32px,8vw,58px);color:var(--green);text-shadow:0 0 18px #00ff88;}
+.rank{font-family:var(--pixel);font-size:clamp(7px,1.8vw,11px);color:var(--purple);
+  text-shadow:0 0 12px #b044ff;border:2px solid var(--purple);
+  padding:12px 22px;box-shadow:3px 3px 0 #440066;}
+.combo{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:var(--pixel);font-size:clamp(16px,4vw,26px);color:var(--yellow);
+  text-shadow:0 0 14px #ffe600;z-index:9999;pointer-events:none;
+  animation:comboRise 1.3s ease forwards;}
+@keyframes comboRise{0%{opacity:1;transform:translate(-50%,-50%)scale(1)}100%{opacity:0;transform:translate(-50%,-180%)scale(1.6)}}
+.sflash{position:fixed;inset:0;z-index:9997;background:#fff;pointer-events:none;animation:flashOut .4s ease forwards;}
+@keyframes flashOut{from{opacity:.65}to{opacity:0}}
+#particles{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;}
+.px{position:absolute;animation:pxFall linear infinite;image-rendering:pixelated;}
+@keyframes pxFall{0%{opacity:0;transform:translateY(-6px)}10%{opacity:.45}90%{opacity:.45}100%{opacity:0;transform:translateY(110vh)}}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--dark)}::-webkit-scrollbar-thumb{background:var(--dim)}
+@media(max-width:480px){.ans-row{flex-direction:column}.btn-purple{width:100%}.hud{padding:8px 12px}}
+</style>
+</head>
+<body>
+<div id="particles"></div>
+<!-- TITLE -->
+<div id="s-title" class="screen active">
+  <div class="deco d1">👾</div><div class="deco d2">🔮</div>
+  <div class="deco d3">⚡</div><div class="deco d4">🗝️</div><div class="deco d5">💀</div>
+  <div class="title-wrap">
+    <div class="title-gem">🧩</div>
+    <div class="title-main">PIXEL<br/><span>RIDDLES</span></div>
+    <div class="title-sub">— THE QUEST —</div>
+    <div class="title-tag">10 Mysteries · 10 Levels · 1 Legend</div>
+    <div class="btn-col">
+      <button class="btn btn-green" id="btn-start">▶  START GAME</button>
+      <button class="btn btn-outline" id="btn-howto">?  HOW TO PLAY</button>
+    </div>
+    <div class="title-foot">Use your wits. Trust no one. Solve everything.</div>
+  </div>
+</div>
+<!-- HOW TO PLAY -->
+<div id="s-howto" class="screen">
+  <div class="modal">
+    <h2>HOW TO PLAY</h2>
+    <div class="steps">
+      <div class="step"><div class="step-icon">📜</div><p>Read the riddle carefully</p></div>
+      <div class="step"><div class="step-icon">🔡</div><p>Type your answer in the box</p></div>
+      <div class="step"><div class="step-icon">💡</div><p>Use hints — but they cost stars</p></div>
+      <div class="step"><div class="step-icon">⭐</div><p>Earn up to 3 stars per level</p></div>
+      <div class="step"><div class="step-icon">🏆</div><p>Solve all 10 to WIN!</p></div>
+    </div>
+    <div class="howto-note">Perfect clears (no hints, no wrongs) = MAX SCORE</div>
+    <button class="btn btn-outline" id="btn-back">◀  BACK</button>
+  </div>
+</div>
+<!-- GAME -->
+<div id="s-game" class="screen">
+  <div class="hud">
+    <div class="hud-block"><span class="hud-lbl">LEVEL</span><span class="hud-val" id="hud-lv">01</span></div>
+    <div class="hud-block"><div class="star-row" id="hud-stars">⭐⭐⭐</div></div>
+    <div class="hud-block"><span class="hud-lbl">SCORE</span><span class="hud-val" id="hud-score">0000</span></div>
+  </div>
+  <div class="prog-wrap">
+    <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+    <div class="prog-dots" id="prog-dots"></div>
+  </div>
+  <div class="riddle-card" id="riddle-card">
+    <div class="scene" id="scene">
+      <div class="scene-stars" id="scene-stars"></div>
+      <div class="scene-ground"></div>
+      <div class="scene-emojis" id="scene-emojis"></div>
+      <div class="scene-tag" id="scene-tag"></div>
+    </div>
+    <div class="cat-badge" id="cat-badge">MYSTERY</div>
+    <div class="riddle-num" id="riddle-num">RIDDLE #1 of 10</div>
+    <div class="riddle-txt" id="riddle-txt"></div>
+    <div class="hint-sec">
+      <button class="btn btn-yellow" id="btn-hint">💡  HINT  (<span id="hints-left">3</span> left)</button>
+      <div class="hint-box" id="hint-box"></div>
+    </div>
+    <div class="ans-row">
+      <input type="text" id="ans-input" class="pixel-input" placeholder="TYPE YOUR ANSWER…" autocomplete="off" spellcheck="false"/>
+      <button class="btn btn-purple" id="btn-submit">SUBMIT ▶</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+    <div class="slots" id="slots"></div>
+  </div>
+  <div class="nav">
+    <button class="btn btn-sm" id="btn-menu">☰  MENU</button>
+    <button class="btn btn-sm btn-red" id="btn-skip">SKIP ▶▶</button>
+  </div>
+</div>
+<!-- LEVEL WIN -->
+<div id="s-win" class="screen">
+  <div class="win-box" id="win-box">
+    <div class="win-title" id="win-title">CORRECT!</div>
+    <div class="win-stars-row" id="win-stars">⭐⭐⭐</div>
+    <div class="win-answer-lbl" id="win-answer"></div>
+    <div class="win-fact" id="win-fact"></div>
+    <div class="win-pts" id="win-pts">+300 pts</div>
+    <button class="btn btn-green" id="btn-next">NEXT LEVEL ▶</button>
+  </div>
+</div>
+<!-- GAME WIN -->
+<div id="s-gameover" class="screen">
+  <div class="go-box">
+    <div class="trophy">🏆</div>
+    <div class="go-title">YOU WIN!</div>
+    <div class="go-sub">ALL 10 RIDDLES SOLVED</div>
+    <div class="go-score-lbl">FINAL SCORE</div>
+    <div class="go-score" id="go-score">0000</div>
+    <div class="star-row" id="go-stars" style="font-size:28px;letter-spacing:6px">⭐⭐⭐</div>
+    <div class="rank" id="go-rank">RANK: GRAND WIZARD</div>
+    <button class="btn btn-green" id="btn-replay">▶  PLAY AGAIN</button>
+  </div>
+</div>
+<script>
+'use strict';
+const RIDDLES=[
+  {cat:'CLASSIC',text:'I speak without a mouth and hear without ears. I have no body, but I come alive with the wind. What am I?',
+   answer:'echo',alt:'',hints:['I happen in mountains and caves.','You shout and hear yourself back.','Rhymes with gecko minus the G.'],
+   fact:'Echoes need a reflective surface at least 17 m away to sound separate from the original!',scene:['🏔️','🗣️','🏔️'],bg:'#0d0820'},
+  {cat:'NATURE',text:'The more you take, the more you leave behind. What am I?',
+   answer:'footsteps',alt:'steps',hints:['Think of walking on a sandy beach.','You create me by moving forward.','Your feet make me every time they land.'],
+   fact:'The oldest human ancestor footprints (Laetoli, Tanzania) are 3.66 million years old!',scene:['👣','🏖️','👣'],bg:'#0d1208'},
+  {cat:'LOGIC',text:'I have cities but no houses. Mountains but no trees. Water but no fish. Roads but no cars. What am I?',
+   answer:'map',alt:'',hints:['You use me to navigate.','I am flat but show the whole world.','Explorers folded me before GPS existed.'],
+   fact:'The world\'s oldest surviving map is a clay Babylonian tablet from around 600 BCE!',scene:['🗺️','📍','🧭'],bg:'#081018'},
+  {cat:'MYSTERY',text:'I have hands but cannot clap. A face but no eyes. I tell you something but I never speak. What am I?',
+   answer:'clock',alt:'watch',hints:['You check me every morning.','I tick and tock.','My hands move but I have no arms.'],
+   fact:'The word clockwise exists because early clocks imitated sundial shadow movement in the northern hemisphere!',scene:['🕐','⏰','🔔'],bg:'#120810'},
+  {cat:'ELEMENTS',text:'I fall from the sky but I\'m not rain. I drift and pile without a stain. White as paper, cold as night — children play in my delight. What am I?',
+   answer:'snow',alt:'',hints:['You can roll me into a ball.','I am frozen water in crystal form.','No two of my flakes are alike.'],
+   fact:'Every snowflake is unique! No two have ever been found with an identical crystal structure.',scene:['❄️','⛄','🌨️'],bg:'#0a1015'},
+  {cat:'PARADOX',text:'The more I dry, the wetter I become. I start clean and end dirty. What am I?',
+   answer:'towel',alt:'',hints:['You use me after a shower.','I absorb what others wash off.','Hotels fold me into fancy swan shapes.'],
+   fact:'The average person uses a bath towel 2 to 3 times before washing it, though experts say wash after every use!',scene:['🚿','🛁','🧴'],bg:'#08100e'},
+  {cat:'DARK ROOM',text:'I have no life but I can die. No lungs but I need air. I thrive on fuel yet never eat. I warm your world but never feel heat. What am I?',
+   answer:'fire',alt:'flame',hints:['Prometheus stole me for humanity.','I dance without legs.','Water is my sworn enemy.'],
+   fact:'Fire is not a thing — it is a rapid chemical oxidation process. It is an event, not matter!',scene:['🔥','🕯️','🔥'],bg:'#150500'},
+  {cat:'WORD PLAY',text:'I am light as a feather, yet the strongest person cannot hold me for more than a few minutes. What am I?',
+   answer:'breath',alt:'air',hints:['You do this automatically all day long.','Babies cry to take their first one.','Divers try to hold me underwater.'],
+   fact:'On average a human takes about 20,000 breaths per day — around 600 million in a lifetime!',scene:['💨','🫁','💨'],bg:'#080c12'},
+  {cat:'ANCIENT',text:'Kings and queens bow before me. Presidents must face me. I outlast all, yet I am made anew each day. What am I?',
+   answer:'mirror',alt:'reflection',hints:['A certain Evil Queen checked one daily.','I show you yourself.','Vampires supposedly cast no image in me.'],
+   fact:'The first mirrors were pools of dark still water. Polished obsidian mirrors from Turkey date back 8,000 years!',scene:['🪞','👑','✨'],bg:'#100810'},
+  {cat:'FINAL BOSS',text:'I build empires and crumble walls. I can heal wounds or start wars. I bind strangers and break families. I am the most powerful force ever created. What am I?',
+   answer:'words',alt:'language|speech',hints:['A pen wields me mightier than a sword.','Books are filled with me.','You are reading me right now.'],
+   fact:'Around 7,000 languages are spoken on Earth today. Mandarin Chinese has the most native speakers at about 1 billion!',scene:['📜','✍️','⚔️'],bg:'#0a0a0a'}
+];
+let S={lvl:0,score:0,totalStars:0,hintCount:0,wrongs:0,answered:false};
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(4,'0');
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='none';});
+  const el=$(id); el.style.display='flex';
+  requestAnimationFrame(()=>el.classList.add('active'));
+}
+function sound(t){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    const m={ok:[880,.13,'square'],bad:[110,.12,'sawtooth'],hint:[440,.08,'sine'],up:[660,.18,'square'],tap:[500,.04,'square']};
+    const[f,v,w]=m[t]||m.tap;
+    o.type=w;o.frequency.setValueAtTime(f,ctx.currentTime);g.gain.setValueAtTime(v,ctx.currentTime);
+    if(t==='ok'||t==='up'){
+      o.frequency.setValueAtTime(f*1.25,ctx.currentTime+.1);o.frequency.setValueAtTime(f*1.5,ctx.currentTime+.2);
+      g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.45);o.start();o.stop(ctx.currentTime+.45);
+    }else{g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.22);o.start();o.stop(ctx.currentTime+.22);}
+  }catch(_){}
+}
+(function(){
+  const c=$('particles'),cols=['#00ff88','#00e5ff','#ffe600','#b044ff','#ff3860'];
+  for(let i=0;i<28;i++){
+    const p=document.createElement('div');p.className='px';
+    const sz=2+Math.floor(Math.random()*2)*2;
+    p.style.cssText=`width:${sz}px;height:${sz}px;background:${cols[i%cols.length]};left:${Math.random()*100}vw;top:${Math.random()*100}vh;animation-duration:${8+Math.random()*14}s;animation-delay:${-Math.random()*16}s;opacity:.35;`;
+    c.appendChild(p);
+  }
+})();
+function updateProgress(){
+  $('prog-fill').style.width=(S.lvl/RIDDLES.length*100)+'%';
+  const d=$('prog-dots');d.innerHTML='';
+  for(let i=0;i<RIDDLES.length;i++){
+    const el=document.createElement('div');
+    el.className='pdot'+(i<S.lvl?' done':i===S.lvl?' now':'');d.appendChild(el);
+  }
+}
+function buildScene(r){
+  const sc=$('scene');sc.style.background=r.bg||'#0a0a0f';
+  const ss=$('scene-stars');ss.innerHTML='';
+  for(let i=0;i<20;i++){
+    const s=document.createElement('div');const sz=Math.random()>.65?3:2;
+    s.style.cssText=`position:absolute;width:${sz}px;height:${sz}px;background:rgba(255,255,255,${.15+Math.random()*.5});left:${Math.random()*97}%;top:${Math.random()*72}%;image-rendering:pixelated;`;
+    ss.appendChild(s);
+  }
+  const ew=$('scene-emojis');ew.innerHTML='';
+  r.scene.forEach(e=>{const s=document.createElement('span');s.className='se';s.textContent=e;ew.appendChild(s);});
+  $('scene-tag').textContent=r.cat;
+}
+function buildSlots(ans){
+  const c=$('slots');c.innerHTML='';
+  [...ans].forEach(ch=>{const d=document.createElement('div');d.className=ch===' '?'slot space':'slot';c.appendChild(d);});
+}
+function updateSlots(typed,ans){
+  const slots=document.querySelectorAll('.slot');let si=0;
+  [...ans].forEach((ch,i)=>{
+    if(!slots[i])return;
+    if(ch===' ')return;
+    const tc=(typed[si]||'').toLowerCase();si++;
+    slots[i].textContent=tc||'';slots[i].classList.toggle('lit',tc!==''&&tc===ch.toLowerCase());
+  });
+}
+function starsCalc(){return Math.max(1,3-S.hintCount-Math.floor(S.wrongs/2));}
+function starsEmoji(n){return'⭐'.repeat(n)+'☆'.repeat(3-n);}
+function refreshStarHud(){$('hud-stars').textContent=starsEmoji(starsCalc());}
+function typeWrite(id,text){
+  const el=$(id);el.textContent='';let i=0;
+  const iv=setInterval(()=>{if(i<text.length)el.textContent+=text[i++];else clearInterval(iv);},20);
+}
+function loadLevel(idx){
+  if(idx>=RIDDLES.length){gameWin();return;}
+  S.hintCount=0;S.wrongs=0;S.answered=false;
+  const r=RIDDLES[idx];
+  $('hud-lv').textContent=String(idx+1).padStart(2,'0');
+  $('hud-score').textContent=pad(S.score);
+  $('hud-stars').textContent='⭐⭐⭐';
+  updateProgress();buildScene(r);buildSlots(r.answer);
+  $('cat-badge').textContent=r.cat;
+  $('riddle-num').textContent='RIDDLE #'+(idx+1)+' of '+RIDDLES.length;
+  typeWrite('riddle-txt',r.text);
+  $('ans-input').value='';
+  $('hint-box').textContent='';$('hint-box').classList.remove('open');
+  $('feedback').textContent='';$('feedback').className='feedback';
+  $('hints-left').textContent=r.hints.length;
+  $('btn-hint').disabled=false;$('btn-hint').style.opacity='1';
+  show('s-game');setTimeout(()=>$('ans-input').focus(),420);
+}
+function checkAnswer(){
+  if(S.answered)return;
+  const raw=$('ans-input').value.trim().toLowerCase();
+  if(!raw){setFeedback('TYPE AN ANSWER FIRST!','no');return;}
+  const r=RIDDLES[S.lvl];
+  const alts=(r.alt||'').split('|').map(s=>s.trim().toLowerCase()).filter(Boolean);
+  if(raw===r.answer.toLowerCase()||alts.includes(raw))handleCorrect();
+  else handleWrong(raw,r.answer);
+}
+function handleCorrect(){
+  S.answered=true;sound('ok');
+  const f=document.createElement('div');f.className='sflash';document.body.appendChild(f);setTimeout(()=>f.remove(),430);
+  if(S.wrongs===0&&S.hintCount===0){
+    const c=document.createElement('div');c.className='combo';c.textContent='✨ PERFECT!';document.body.appendChild(c);setTimeout(()=>c.remove(),1400);
+  }
+  const stars=starsCalc(),pts=stars*100+(S.wrongs===0?50:0);
+  S.score+=pts;S.totalStars+=stars;
+  setTimeout(()=>levelWin(stars,pts),430);
+}
+function strSim(a,b){
+  if(a===b)return 1;const l=a.length>b.length?a:b,s=a.length>b.length?b:a;
+  if(!l.length)return 1;let m=0;for(const ch of s)if(l.includes(ch))m++;return m/l.length;
+}
+function handleWrong(typed,answer){
+  S.wrongs++;refreshStarHud();sound('bad');
+  const sim=strSim(typed,answer.toLowerCase());
+  const msgs=['WRONG! Try again.',sim>.6?'SO CLOSE! Almost...':sim>.38?'Getting warmer!':'Nope! Keep thinking.','Not quite — use a hint?','Still wrong… try harder!'];
+  setFeedback(msgs[Math.min(S.wrongs-1,msgs.length-1)],'no');
+  $('feedback').style.animation='none';requestAnimationFrame(()=>$('feedback').style.animation='shake .4s ease');
+  updateSlots($('ans-input').value,RIDDLES[S.lvl].answer);
+}
+function setFeedback(msg,cls){const el=$('feedback');el.textContent=(cls==='ok'?'✔ ':'✘ ')+msg;el.className='feedback '+cls;}
+function useHint(){
+  if(S.answered)return;const r=RIDDLES[S.lvl];
+  if(S.hintCount>=r.hints.length){setFeedback('No more hints!','no');return;}
+  const h=r.hints[S.hintCount++];refreshStarHud();sound('hint');
+  $('hint-box').textContent='💡 HINT '+S.hintCount+': '+h;$('hint-box').classList.add('open');
+  const left=r.hints.length-S.hintCount;$('hints-left').textContent=left;
+  if(left===0){$('btn-hint').disabled=true;$('btn-hint').style.opacity='.35';}
+}
+function levelWin(stars,pts){
+  const r=RIDDLES[S.lvl];
+  $('win-title').textContent=stars===3?'⭐ PERFECT!':'CORRECT!';
+  $('win-stars').textContent=starsEmoji(stars);
+  $('win-answer').textContent='Answer: '+r.answer.toUpperCase();
+  $('win-fact').textContent=r.fact;
+  $('win-pts').textContent=(pts>0?'+'+pts:'+0')+' pts';
+  confettiBurst();sound('up');show('s-win');
+}
+function confettiBurst(){
+  const box=$('win-box'),cols=['#00ff88','#ffe600','#00e5ff','#ff3860','#b044ff','#ff8c00'];
+  for(let i=0;i<24;i++){
+    const d=document.createElement('div');d.className='conf';
+    d.style.cssText=`background:${cols[i%cols.length]};left:${Math.random()*96}%;top:0;animation-duration:${.6+Math.random()*.9}s;animation-delay:${Math.random()*.4}s;`;
+    box.appendChild(d);setTimeout(()=>d.remove(),2300);
+  }
+}
+function gameWin(){
+  const avg=Math.round(S.totalStars/RIDDLES.length);
+  $('go-score').textContent=pad(S.score);
+  $('go-stars').textContent=starsEmoji(Math.min(3,avg));
+  $('go-rank').textContent='RANK: '+rank(S.score);
+  show('s-gameover');sound('up');
+}
+function rank(s){
+  if(s>=2800)return'★ GRAND WIZARD ★';if(s>=2200)return'◆ SAGE MASTER';
+  if(s>=1600)return'▲ RIDDLE KNIGHT';if(s>=1000)return'● APPRENTICE';return'○ NOVICE PUZZLER';
+}
+function resetGame(){S={lvl:0,score:0,totalStars:0,hintCount:0,wrongs:0,answered:false};}
+$('btn-start').onclick=()=>{sound('tap');resetGame();loadLevel(0);};
+$('btn-howto').onclick=()=>{sound('tap');show('s-howto');};
+$('btn-back').onclick=()=>{sound('tap');show('s-title');};
+$('btn-submit').onclick=checkAnswer;
+$('ans-input').onkeydown=e=>{if(e.key==='Enter')checkAnswer();};
+$('ans-input').oninput=e=>{sound('tap');updateSlots(e.target.value,RIDDLES[S.lvl]?.answer||'');};
+$('btn-hint').onclick=useHint;
+$('btn-menu').onclick=()=>{if(confirm('Return to main menu? Progress will be lost.'))show('s-title');};
+$('btn-skip').onclick=()=>{
+  if(!S.answered){const r=RIDDLES[S.lvl];setFeedback('Answer: '+r.answer.toUpperCase(),'no');}
+  S.answered=true;S.score=Math.max(0,S.score-30);$('hud-score').textContent=pad(S.score);
+  setTimeout(()=>{S.lvl++;levelWin(1,0);},720);
+};
+$('btn-next').onclick=()=>{sound('tap');S.lvl++;loadLevel(S.lvl);};
+$('btn-replay').onclick=()=>{sound('up');resetGame();show('s-title');};
+</script>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="The Whispering Shadows - A Pixel Art Horror Decision Game">
+    <title>The Whispering Shadows</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="crt-overlay"></div>
+    <div class="scanlines"></div>
+
+    <div id="game-container">
+        <div id="scene-bg" class="scene-fade pixelated" style="background-image: url('assets/images/mansion.png');"></div>
+        <div id="ghost-layer" class="ghostly-fade"></div>
+        <div class="vignette"></div>
+
+        <div id="start-screen" class="menu-screen">
+            <div class="menu-panel glass-panel">
+                <p class="menu-kicker">ENTER IF YOU DARE</p>
+                <h2 class="menu-title">THE WHISPERING SHADOWS</h2>
+                <p id="menu-description">
+                    A cursed pixel-horror story waits inside Blackwood Manor. Every choice pulls you deeper into the dark.
+                </p>
+                <div id="menu-actions" class="menu-actions">
+                    <button id="start-game-btn" class="pixel-btn">Start Game</button>
+                    <button id="instructions-btn" class="pixel-btn">Instructions</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="ui-overlay">
+            <div id="text-box" class="glass-panel">
+                <p id="game-text">Loading the shadows...</p>
+            </div>
+
+            <div id="choices-container"></div>
+        </div>
+
+        <div id="controls">
+            <button id="toggle-audio" class="pixel-btn">Sound: Off</button>
+            <h1 id="game-title">THE WHISPERING SHADOWS</h1>
+        </div>
+    </div>
+
+    <audio id="bgm" preload="auto"></audio>
+
+    <script src="js/story.js"></script>
+    <script src="js/engine.js"></script>
+</body>
+</html>

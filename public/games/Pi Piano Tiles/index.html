@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>π Piano Tiles — Play the Digits of Pi</title>
+  <meta name="description" content="A piano tiles game where every tile is a digit of Pi. Each tap plays a note mapped to π's infinite sequence." />
+  <link rel="stylesheet" href="style.css" />
+  <!-- Pi favicon via SVG data URI -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>π</text></svg>" />
+</head>
+<body>
+
+<!-- Background Pi Rain Canvas -->
+<canvas id="pi-rain-canvas"></canvas>
+
+<div id="app">
+
+  <!-- ══════════════════════════════════════════════
+       HEADER
+       ══════════════════════════════════════════════ -->
+  <header id="header">
+    <div class="header-brand">
+      <span class="pi-symbol">π</span>
+      <div class="brand-text">
+        <span class="brand-title">Piano Tiles</span>
+        <span class="brand-sub">Powered by the digits of π</span>
+      </div>
+    </div>
+
+    <!-- Score Strip -->
+    <div id="score-strip">
+      <div class="score-card">
+        <span class="score-label">Score</span>
+        <span class="score-value" id="val-score">0</span>
+      </div>
+      <div class="score-card">
+        <span class="score-label">Best</span>
+        <span class="score-value" id="val-best">0</span>
+      </div>
+      <div class="score-card">
+        <span class="score-label">Combo</span>
+        <span class="score-value" id="val-combo">0</span>
+      </div>
+      <div class="score-card">
+        <span class="score-label">π Digit</span>
+        <span class="score-value" id="val-pi-index">0</span>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div id="controls-strip">
+      <button class="icon-btn" id="btn-pause"   title="Pause (P)">⏸</button>
+      <button class="icon-btn" id="btn-restart" title="Restart">↺</button>
+      <button class="icon-btn" id="btn-mute"    title="Mute">🔊</button>
+    </div>
+  </header>
+
+  <!-- Pi sequence bar -->
+  <div id="pi-sequence" aria-label="Pi digit sequence"></div>
+
+  <!-- Note badge -->
+  <div id="note-badge"></div>
+
+  <!-- ══════════════════════════════════════════════
+       GAME + SIDE PANEL
+       ══════════════════════════════════════════════ -->
+  <div id="game-wrap">
+
+    <!-- ── Board ── -->
+    <div id="board" aria-label="Piano tiles board">
+
+      <!-- 4 columns -->
+      <div class="column" id="col-0" data-col="0">
+        <span class="col-label">D · F</span>
+      </div>
+      <div class="column" id="col-1" data-col="1">
+        <span class="col-label">F · G</span>
+      </div>
+      <div class="column" id="col-2" data-col="2">
+        <span class="col-label">J · C</span>
+      </div>
+      <div class="column" id="col-3" data-col="3">
+        <span class="col-label">K · E</span>
+      </div>
+
+      <!-- Hit Zone -->
+      <div id="hit-zone">
+        <div class="hit-zone-col" style="left:0%">
+          <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7" stroke="#22d3ee" stroke-width="1.5" fill="none"/></svg>
+        </div>
+        <div class="hit-zone-col" style="left:25%">
+          <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7" stroke="#22d3ee" stroke-width="1.5" fill="none"/></svg>
+        </div>
+        <div class="hit-zone-col" style="left:50%">
+          <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7" stroke="#22d3ee" stroke-width="1.5" fill="none"/></svg>
+        </div>
+        <div class="hit-zone-col" style="left:75%">
+          <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7" stroke="#22d3ee" stroke-width="1.5" fill="none"/></svg>
+        </div>
+      </div>
+
+      <!-- Particle overlay -->
+      <canvas id="particle-canvas"></canvas>
+
+      <!-- Combo popup -->
+      <div id="combo-display"></div>
+    </div><!-- /board -->
+
+    <!-- ── Side Panel ── -->
+    <aside id="side-panel">
+
+      <!-- Speed Control -->
+      <div class="panel-section">
+        <div class="panel-title">Speed</div>
+        <div class="speed-row">
+          <label class="speed-label">
+            <span>Slow</span><span id="speed-val">1.0×</span><span>Fast</span>
+          </label>
+          <input type="range" id="speed-slider"
+                 min="0.5" max="3.0" step="0.1" value="1.0"
+                 aria-label="Game speed" />
+        </div>
+      </div>
+
+      <!-- Volume Control -->
+      <div class="panel-section">
+        <div class="panel-title">Volume</div>
+        <div class="vol-row">
+          <span id="vol-icon">🔊</span>
+          <input type="range" id="volume-slider"
+                 min="0" max="1" step="0.05" value="0.7"
+                 aria-label="Volume" />
+        </div>
+      </div>
+
+      <!-- Keyboard Map -->
+      <div class="panel-section">
+        <div class="panel-title">Keys</div>
+        <div class="key-map">
+          <div class="key-item"><span class="key-badge">D</span> Col 1</div>
+          <div class="key-item"><span class="key-badge">F</span> Col 2</div>
+          <div class="key-item"><span class="key-badge">J</span> Col 3</div>
+          <div class="key-item"><span class="key-badge">K</span> Col 4</div>
+          <div class="key-item" style="grid-column:1/-1"><span class="key-badge">P</span> Pause</div>
+        </div>
+      </div>
+
+      <!-- Digit → Note Legend -->
+      <div class="panel-section">
+        <div class="panel-title">π Note Map</div>
+        <div class="digit-legend">
+          <div class="legend-item">
+            <div class="legend-dot d0">0</div>
+            <span class="legend-note">C4</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot d1">1</div>
+            <span class="legend-note">D4</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot d2">2</div>
+            <span class="legend-note">E4</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot d3">3</div>
+            <span class="legend-note">F4</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot d4">4</div>
+            <span class="legend-note">G4</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot d5">5</div>
+            <span class="legend-note">A4</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot d6">6</div>
+            <span class="legend-note">B4</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot d7">7</div>
+            <span class="legend-note">C5</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot d8">8</div>
+            <span class="legend-note">D5</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot d9">9</div>
+            <span class="legend-note">E5</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fun Pi fact -->
+      <div class="panel-section">
+        <div class="panel-title">Did you know?</div>
+        <p style="font-size:0.6rem;color:#94a3b8;line-height:1.6;" id="pi-fact">
+          π is irrational — its digits never repeat, giving this game an infinite unique melody!
+        </p>
+      </div>
+
+    </aside>
+  </div><!-- /game-wrap -->
+
+</div><!-- /app -->
+
+<!-- ══════════════════════════════════════════════════════════
+     OVERLAYS
+     ══════════════════════════════════════════════════════════ -->
+
+<!-- START -->
+<div class="overlay" id="overlay-start">
+  <div class="overlay-card">
+    <div class="overlay-pi">π</div>
+    <h1 class="overlay-title">π Piano Tiles</h1>
+    <p class="overlay-sub">
+      Each tile shows a digit of <strong>Pi</strong>.<br/>
+      Tap the tile as it enters the hit zone to play its note.<br/>
+      Miss one — and the symphony ends.
+    </p>
+    <div class="pi-preview">3 · 1 · 4 · 1 · 5 · 9 · 2 · 6 · 5 · 3 · 5 · 8 · 9 · 7 · 9 · 3 · 2 · 3 · 8 · 4 …</div>
+    <button class="btn-primary" id="btn-start">
+      <span>▶</span> Start Playing
+    </button>
+  </div>
+</div>
+
+<!-- PAUSED -->
+<div class="overlay" id="overlay-pause" style="display:none">
+  <div class="overlay-card">
+    <div class="overlay-pi" style="font-size:3rem">⏸</div>
+    <h2 class="overlay-title">Paused</h2>
+    <p class="overlay-sub">The π melody is on hold.<br/>Press <strong>P</strong> or click Resume to continue.</p>
+    <button class="btn-primary" id="btn-resume">
+      <span>▶</span> Resume
+    </button>
+    <button class="btn-secondary" id="btn-menu">☰ Menu</button>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div class="overlay" id="overlay-gameover" style="display:none">
+  <div class="overlay-card">
+    <div class="overlay-pi" style="font-size:2.5rem">🎹</div>
+    <h2 class="overlay-title">Game Over</h2>
+    <p class="overlay-sub" id="go-pi-reached" style="margin-bottom:16px;color:#a855f7;">—</p>
+
+    <div class="go-stats">
+      <div class="go-stat">
+        <div class="go-stat-label">Score</div>
+        <div class="go-stat-value" id="go-score">0</div>
+      </div>
+      <div class="go-stat">
+        <div class="go-stat-label">Best</div>
+        <div class="go-stat-value" id="go-best" style="color:#fbbf24">0</div>
+      </div>
+      <div class="go-stat">
+        <div class="go-stat-label">Max Combo</div>
+        <div class="go-stat-value" id="go-combo" style="color:#a855f7">0</div>
+      </div>
+      <div class="go-stat">
+        <div class="go-stat-label">π Digits</div>
+        <div class="go-stat-value" id="go-digits" style="color:#22d3ee">0</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="btn-replay">
+      <span>↺</span> Play Again
+    </button>
+    <button class="btn-secondary" id="btn-menu-go">☰ Menu</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     SCRIPTS
+     ══════════════════════════════════════════════════════════ -->
+<script src="pi.js"></script>
+<script src="audio.js"></script>
+<script src="game.js"></script>
+
+<script>
+  // Wire the "Menu" button on game-over overlay (duplicate id workaround)
+  document.getElementById('btn-menu-go').addEventListener('click', () => {
+    document.getElementById('btn-menu').click();
+  });
+
+  // Rotating Pi facts
+  const facts = [
+    "π is irrational — its digits never repeat, giving this game an infinite unique melody!",
+    "The first 10 digits of π are 3.141592653 — how far can you get?",
+    "π has been calculated to over 100 trillion decimal places.",
+    "Mathematicians call π a 'normal' number — every digit 0–9 appears equally often.",
+    "The word 'pi' comes from the Greek letter π, used by William Jones in 1706.",
+    "In 2019, Emma Haruka Iwao computed π to 31.4 trillion digits — on Google Cloud.",
+    "If you wrote 1 digit per second, it would take over 3,000 years to write π to 100 billion places.",
+    "π appears in Euler's identity: e^(iπ) + 1 = 0 — called the most beautiful equation in math.",
+  ];
+  let factIdx = 0;
+  const factEl = document.getElementById('pi-fact');
+  setInterval(() => {
+    factIdx = (factIdx + 1) % facts.length;
+    factEl.style.opacity = 0;
+    setTimeout(() => {
+      factEl.textContent = facts[factIdx];
+      factEl.style.opacity = 1;
+    }, 400);
+  }, 8000);
+  factEl.style.transition = 'opacity 0.4s';
+</script>
+
+</body>
+</html>

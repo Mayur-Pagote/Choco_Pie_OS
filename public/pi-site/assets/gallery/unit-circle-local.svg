@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+  <title id="title">Unit Circle and Pi</title>
+  <desc id="desc">A stylized unit circle diagram with axes and pi angle labels.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fbff"/>
+      <stop offset="100%" stop-color="#dbeafe"/>
+    </linearGradient>
+    <linearGradient id="circle" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f97316"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="900" fill="url(#bg)"/>
+  <g stroke="#94a3b8" stroke-width="3" opacity="0.55">
+    <line x1="120" y1="450" x2="1080" y2="450"/>
+    <line x1="600" y1="90" x2="600" y2="810"/>
+    <line x1="320" y1="170" x2="880" y2="730"/>
+    <line x1="320" y1="730" x2="880" y2="170"/>
+  </g>
+  <circle cx="600" cy="450" r="260" fill="none" stroke="url(#circle)" stroke-width="12"/>
+  <circle cx="600" cy="450" r="10" fill="#1e293b"/>
+  <path d="M600 450 L860 450 A260 260 0 0 1 730 225 Z" fill="#fb923c" opacity="0.24"/>
+  <g fill="#0f172a" font-family="Georgia, 'Times New Roman', serif">
+    <text x="88" y="120" font-size="54" font-weight="700">Unit Circle and Pi</text>
+    <text x="88" y="175" font-size="30">Angles in radians wrap the circle in multiples of pi.</text>
+  </g>
+  <g fill="#1e293b" font-family="Arial, sans-serif" font-size="28" font-weight="700">
+    <text x="875" y="442">0</text>
+    <text x="588" y="145">pi/2</text>
+    <text x="305" y="458">pi</text>
+    <text x="566" y="790">3pi/2</text>
+    <text x="748" y="280">pi/4</text>
+  </g>
+  <g fill="#475569" font-family="Arial, sans-serif" font-size="24">
+    <text x="885" y="478">(1, 0)</text>
+    <text x="610" y="205">(0, 1)</text>
+    <text x="240" y="478">(-1, 0)</text>
+    <text x="610" y="744">(0, -1)</text>
+  </g>
+</svg>

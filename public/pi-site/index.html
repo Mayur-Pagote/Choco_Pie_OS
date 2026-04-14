@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var theme = params.get('theme');
+      if (theme !== 'light' && theme !== 'dark') {
+        try {
+          theme = localStorage.getItem('pi-site-theme');
+        } catch (error) {
+          theme = null;
+        }
+      }
+      if (theme === 'light' || theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', theme);
+      }
+
+      if (params.get('embed') !== '1') return;
+
+      document.documentElement.setAttribute('data-embed', '1');
+
+      var style = document.createElement('style');
+      style.textContent = "html[data-embed='1'],html[data-embed='1'] body{background:var(--bg);}html[data-embed='1'] body{display:block;min-height:100%;margin:0;overflow-x:hidden;}html[data-embed='1'] #sidebar,html[data-embed='1'] .site-footer{display:none !important;}html[data-embed='1'] #main-content{margin-left:0 !important;min-height:100vh;background:var(--bg);overflow-x:hidden;}html[data-embed='1'] .page-section.active{background:var(--bg);}html[data-embed='1'] .content-wrap{padding:24px 24px 24px;}";
+      document.head.appendChild(style);
+    })();
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Pi Site — Exploring All Things π</title>
+  <meta name="description" content="Exploring mathematical π, Raspberry Pi computers, Pi art, Pi Symphony, Pi games and more. Explore the infinite world of Pi." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-wrap">
+        <div class="logo-icon">π</div>
+        <div>
+          <div class="logo-title">The Pi Site</div>
+          <div class="logo-tagline">Exploring all things π</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <p class="nav-section-label">NAVIGATION</p>
+      <ul id="nav-list">
+        <li class="nav-item active" data-page="about">
+          <span class="nav-icon" style="font-weight:800;font-size:15px;font-family:'Inter',sans-serif;">π</span>
+          <span>About Pi</span>
+        </li>
+        <li class="nav-item" data-page="piday">
+          <i class="fa-regular fa-calendar nav-icon"></i>
+          <span>Pi Day</span>
+        </li>
+        <li class="nav-item" data-page="raspberrypi">
+          <i class="fa-solid fa-microchip nav-icon"></i>
+          <span>Raspberry Pi</span>
+        </li>
+        <li class="nav-item" data-page="piart">
+          <i class="fa-solid fa-palette nav-icon"></i>
+          <span>Pi Art</span>
+        </li>
+        <li class="nav-item" data-page="symphony">
+          <i class="fa-solid fa-music nav-icon"></i>
+          <span>Pi Symphony</span>
+        </li>
+        <li class="nav-item" data-page="explorer">
+          <i class="fa-solid fa-magnifying-glass nav-icon"></i>
+          <span>Pi Explorer</span>
+        </li>
+        <li class="nav-item" data-page="simulation">
+          <i class="fa-solid fa-chart-line nav-icon"></i>
+          <span>Simulation</span>
+        </li>
+        <li class="nav-item" data-page="games">
+          <i class="fa-solid fa-gamepad nav-icon"></i>
+          <span>Games</span>
+        </li>
+        <li class="nav-item" data-page="quiz">
+          <i class="fa-solid fa-circle-question nav-icon"></i>
+          <span>Pi Quiz</span>
+        </li>
+        <li class="nav-item" data-page="mandala">
+          <i class="fa-solid fa-wand-magic-sparkles nav-icon"></i>
+          <span>Infinite Zoom Pi Mandala</span>
+        </li>
+        <li class="nav-item" data-page="gallery">
+          <i class="fa-solid fa-images nav-icon"></i>
+          <span>Gallery</span>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="pi-code-panel">
+        <div class="pi-code-label">π = 3.14159…</div>
+        <div class="pi-digits-scroll" id="pi-digits-scroll">
+          28535 89793 23846 26433 83279 50288
+          41971 69399 37510 58280
+          94944 59230 78164 06286 20899 86280
+          34825 34211 70679 82148 08651 32823
+          06647 09384 46095 50582 23172 53594
+          08128 48111 74502 84102 70193 85211
+        </div>
+      </div>
+      <button class="light-mode-toggle" id="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to light mode">
+        <div class="toggle-switch" aria-hidden="true">
+          <div class="toggle-knob"></div>
+        </div>
+        <span class="toggle-label" id="theme-toggle-label"><i class="fa-regular fa-sun"></i> Light Mode</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main id="main-content">
+
+    <!-- About Pi -->
+    <section id="page-about" class="page-section active"></section>
+
+    <!-- Pi Day -->
+    <section id="page-piday" class="page-section"></section>
+
+    <!-- Raspberry Pi -->
+    <section id="page-raspberrypi" class="page-section"></section>
+
+    <!-- Pi Art -->
+    <section id="page-piart" class="page-section"></section>
+
+    <!-- Pi Symphony -->
+    <section id="page-symphony" class="page-section"></section>
+
+    <!-- Pi Explorer -->
+    <section id="page-explorer" class="page-section"></section>
+
+    <!-- Simulation -->
+    <section id="page-simulation" class="page-section"></section>
+
+    <!-- Games -->
+    <section id="page-games" class="page-section"></section>
+
+    <!-- Pi Quiz -->
+    <section id="page-quiz" class="page-section"></section>
+
+    <!-- Infinite Zoom Pi Mandala -->
+    <section id="page-mandala" class="page-section"></section>
+
+    <!-- Gallery -->
+    <section id="page-gallery" class="page-section"></section>
+
+  </main>
+
+  <!-- Scripts -->
+  <script src="pages/about.js"></script>
+  <script src="pages/piday.js"></script>
+  <script src="pages/raspberrypi.js"></script>
+  <script src="pages/piart.js"></script>
+  <script src="pages/symphony.js"></script>
+  <script src="pages/explorer.js"></script>
+  <script src="pages/simulation.js"></script>
+  <script src="pages/games.js"></script>
+  <script src="pages/quiz.js"></script>
+  <script src="pages/mandala.js"></script>
+  <script src="pages/gallery.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

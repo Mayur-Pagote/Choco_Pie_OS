@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Rush - Cyber Bike Run</title>
+    <meta name="description" content="A cyberpunk bike racer where you weave through moving cars and bikes to reach the finish line">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="hud" class="hidden">
+            <div id="hud-top">
+                <div id="score-display" class="hud-card">
+                    <span class="hud-label">SCORE</span>
+                    <span id="score-value">0</span>
+                </div>
+                <div id="distance-display" class="hud-card">
+                    <span class="hud-label">REMAINING</span>
+                    <span id="distance-value">0.0 km</span>
+                </div>
+                <div id="progress-display" class="hud-card">
+                    <span class="hud-label">PROGRESS</span>
+                    <span id="progress-value">0%</span>
+                </div>
+            </div>
+
+            <div id="hud-bottom">
+                <div id="integrity-display" class="hud-card">
+                    <span class="hud-label">BIKE</span>
+                    <span id="integrity-value">100%</span>
+                </div>
+                <div id="objective-display" class="hud-card">
+                    <span class="hud-label">OBJECTIVE</span>
+                    <span id="objective-value">Reach the finish line</span>
+                </div>
+            </div>
+
+            <div id="speed-display">
+                <span id="speed-value">0</span>
+                <span class="speed-unit">KM/H</span>
+            </div>
+        </div>
+
+        <div id="title-screen">
+            <div class="title-content">
+                <h1 class="game-title">NEON<span class="title-accent">RUSH</span></h1>
+                <p class="game-subtitle">CYBER BIKE RUN</p>
+                <p class="intro-copy">Blast through the district, weave through moving cars and bikes, and make it to the gate.</p>
+                <div class="controls-info">
+                    <p>&uarr; / W - Accelerate</p>
+                    <p>&darr; / S - Brake</p>
+                    <p>&larr; &rarr; / A D - Steer</p>
+                </div>
+                <button id="start-btn" class="neon-btn">START RIDE</button>
+                <p class="press-hint">or press ENTER</p>
+            </div>
+        </div>
+
+        <div id="result-screen" class="hidden">
+            <div class="result-content">
+                <h1 id="result-title" class="result-title">WRECKED</h1>
+                <p id="result-message" class="result-message">The ride ended before the finish line.</p>
+                <div class="final-stats">
+                    <div class="stat-row"><span>SCORE</span><span id="final-score">0</span></div>
+                    <div class="stat-row"><span>DISTANCE</span><span id="final-distance">0.0 km</span></div>
+                    <div class="stat-row"><span>TOP SPEED</span><span id="final-speed">0 km/h</span></div>
+                    <div class="stat-row"><span>CONDITION</span><span id="final-condition">100%</span></div>
+                </div>
+                <button id="restart-btn" class="neon-btn">RIDE AGAIN</button>
+                <p class="press-hint">or press ENTER</p>
+            </div>
+        </div>
+    </div>
+    <script src="js/game.js"></script>
+</body>
+</html>

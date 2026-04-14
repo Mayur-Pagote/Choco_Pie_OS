@@ -1,0 +1,371 @@
+/* ==========================================
+   NEON RUSH - Cyber Bike Run Styles
+   ========================================== */
+
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
+:root {
+    --neon-cyan: #00fff2;
+    --neon-magenta: #ff00ff;
+    --neon-purple: #8b00ff;
+    --neon-pink: #ff1493;
+    --neon-yellow: #ffd700;
+    --bg-dark: #05000f;
+    --bg-panel: rgba(7, 4, 20, 0.82);
+    --font-main: 'Orbitron', sans-serif;
+    --font-body: 'Rajdhani', sans-serif;
+}
+
+body {
+    background:
+        radial-gradient(circle at top, rgba(80, 0, 120, 0.18), transparent 45%),
+        #000;
+    overflow: hidden;
+    font-family: var(--font-body);
+    color: #fff;
+}
+
+#game-container {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #010107;
+}
+
+#gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.hidden {
+    display: none !important;
+}
+
+#hud {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#hud-top,
+#hud-bottom {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    padding: 20px 28px;
+}
+
+#hud-top {
+    justify-content: space-between;
+    align-items: flex-start;
+    padding-right: 220px;
+}
+
+#hud-bottom {
+    position: absolute;
+    left: 0;
+    bottom: 28px;
+    width: auto;
+    max-width: 60%;
+    flex-wrap: wrap;
+}
+
+.hud-card {
+    min-width: 150px;
+    padding: 10px 18px;
+    border: 1px solid rgba(0, 255, 242, 0.7);
+    border-radius: 10px;
+    background: var(--bg-panel);
+    backdrop-filter: blur(5px);
+    box-shadow: 0 0 16px rgba(0, 255, 242, 0.16);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#objective-display {
+    min-width: 260px;
+}
+
+.hud-label {
+    font-family: var(--font-main);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--neon-cyan);
+    opacity: 0.84;
+}
+
+#score-value,
+#distance-value,
+#progress-value,
+#integrity-value,
+#objective-value {
+    font-family: var(--font-main);
+    font-size: 22px;
+    color: #fff;
+    text-shadow: 0 0 12px rgba(0, 255, 242, 0.3);
+}
+
+#objective-value {
+    font-family: var(--font-body);
+    font-size: 18px;
+    letter-spacing: 0.5px;
+}
+
+#integrity-value {
+    color: var(--neon-yellow);
+    text-shadow: 0 0 12px rgba(255, 215, 0, 0.35);
+}
+
+#speed-display {
+    position: absolute;
+    right: 30px;
+    top: 28px;
+    text-align: right;
+    z-index: 11;
+    min-width: 150px;
+}
+
+#speed-value {
+    display: block;
+    font-family: var(--font-main);
+    font-size: 54px;
+    font-weight: 900;
+    line-height: 1;
+    color: #fff;
+    text-shadow:
+        0 0 18px rgba(255, 0, 255, 0.45),
+        0 0 34px rgba(255, 0, 255, 0.25);
+}
+
+.speed-unit {
+    display: block;
+    font-family: var(--font-main);
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--neon-magenta);
+}
+
+#title-screen,
+#result-screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    text-align: center;
+}
+
+#title-screen {
+    background:
+        radial-gradient(ellipse at center bottom, rgba(139, 0, 255, 0.18) 0%, transparent 45%),
+        rgba(5, 0, 15, 0.88);
+}
+
+#result-screen {
+    background: rgba(5, 0, 15, 0.9);
+    backdrop-filter: blur(6px);
+}
+
+.title-content,
+.result-content {
+    width: min(640px, 90vw);
+}
+
+.game-title,
+.result-title {
+    font-family: var(--font-main);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: 8px;
+}
+
+.game-title {
+    font-size: 80px;
+    color: #fff;
+    text-shadow:
+        0 0 30px rgba(0, 255, 242, 0.75),
+        0 0 60px rgba(0, 255, 242, 0.35);
+    animation: titlePulse 2s ease-in-out infinite;
+}
+
+.title-accent {
+    color: var(--neon-magenta);
+    text-shadow:
+        0 0 30px rgba(255, 0, 255, 0.8),
+        0 0 60px rgba(255, 0, 255, 0.35);
+}
+
+.game-subtitle {
+    margin-top: 12px;
+    font-family: var(--font-main);
+    font-size: 16px;
+    letter-spacing: 12px;
+    color: var(--neon-purple);
+    text-shadow: 0 0 12px rgba(139, 0, 255, 0.6);
+}
+
+.intro-copy,
+.result-message {
+    margin: 22px auto 0;
+    max-width: 500px;
+    font-size: 20px;
+    line-height: 1.35;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.controls-info {
+    margin: 34px auto;
+    font-size: 15px;
+    line-height: 1.9;
+    letter-spacing: 1px;
+    color: rgba(255, 255, 255, 0.62);
+}
+
+.neon-btn {
+    font-family: var(--font-main);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    color: var(--neon-cyan);
+    background: transparent;
+    border: 2px solid var(--neon-cyan);
+    padding: 14px 44px;
+    cursor: pointer;
+    pointer-events: auto;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.neon-btn:hover {
+    background: rgba(0, 255, 242, 0.1);
+    box-shadow:
+        0 0 28px rgba(0, 255, 242, 0.35),
+        inset 0 0 18px rgba(0, 255, 242, 0.08);
+    transform: scale(1.04);
+}
+
+.neon-btn:active {
+    transform: scale(0.98);
+}
+
+.press-hint {
+    margin-top: 14px;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.32);
+}
+
+.result-title {
+    font-size: 66px;
+    color: var(--neon-magenta);
+    text-shadow:
+        0 0 26px rgba(255, 0, 255, 0.72),
+        0 0 54px rgba(255, 0, 255, 0.3);
+}
+
+.final-stats {
+    width: min(360px, 90vw);
+    margin: 28px auto 0;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(0, 255, 242, 0.16);
+    font-family: var(--font-main);
+    font-size: 14px;
+    letter-spacing: 2px;
+}
+
+.stat-row span:first-child {
+    color: rgba(255, 255, 255, 0.52);
+}
+
+.stat-row span:last-child {
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px rgba(0, 255, 242, 0.36);
+}
+
+@keyframes titlePulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.86;
+    }
+}
+
+@media (max-width: 900px) {
+    .game-title,
+    .result-title {
+        font-size: 52px;
+        letter-spacing: 5px;
+    }
+
+    .game-subtitle {
+        font-size: 12px;
+        letter-spacing: 7px;
+    }
+
+    .intro-copy,
+    .result-message {
+        font-size: 17px;
+    }
+
+    #hud-top {
+        gap: 10px;
+        padding: 14px;
+        padding-right: 150px;
+    }
+
+    #hud-bottom {
+        left: 14px;
+        bottom: 18px;
+        right: 14px;
+        max-width: none;
+        gap: 10px;
+        padding: 0;
+    }
+
+    .hud-card {
+        min-width: 0;
+        padding: 8px 12px;
+    }
+
+    #objective-display {
+        flex: 1 1 100%;
+    }
+
+    #score-value,
+    #distance-value,
+    #progress-value,
+    #integrity-value,
+    #objective-value {
+        font-size: 16px;
+    }
+
+    #speed-display {
+        right: 16px;
+        top: 18px;
+    }
+
+    #speed-value {
+        font-size: 34px;
+    }
+}

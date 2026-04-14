@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 564.7 562.4">
+	<defs>
+		<style>
+			.circle {
+			fill: none;
+			stroke: #000;
+			stroke-width: 1.5px;
+			}
+			.blue {
+			fill: blue;
+			}
+			.italic {
+			font-size: 48px;
+			font-family: "DejaVu serif", serif;
+			font-style: italic;
+			}
+			.roman {
+			font-size: 36px;
+			font-family: "DejaVu serif", serif;
+			}
+		</style>
+	</defs>
+	<switch>
+		<g systemLanguage="en">
+			<text class="italic" transform="translate(282.6 40.4)">C</text>
+			<text class="roman" transform="translate(15 200) rotate(-45)">circumference</text>
+			<text class="italic" transform="translate(329 267.1) rotate(-20)">d</text>
+			<text class="roman" transform="translate(297.8 347.2) rotate(-20)">diameter</text>
+		</g>
+		<g systemLanguage="as">
+			<text class="italic" transform="translate(282.6 40.4)">C</text>
+			<text class="roman" transform="translate(21.4 182.3) rotate(-45)">পৰিধি</text>
+			<text class="italic" transform="translate(329 267.1) rotate(-20)">d</text>
+			<text class="roman" transform="translate(297.8 347.2) rotate(-20)">ব্যাস</text>
+		</g>
+		<g systemLanguage="cs">
+			<text class="italic" transform="translate(282.6 40.4)">O</text>
+			<text class="roman" transform="translate(21.4 182.3) rotate(-45)">obvod</text>
+			<text class="italic" transform="translate(329 267.1) rotate(-20)">d</text>
+			<text class="roman" transform="translate(297.8 347.2) rotate(-20)">průměr</text>
+		</g>
+                <g systemLanguage="ja">
+			<text class="italic" transform="translate(282.6 40.4)">C</text>
+			<text class="roman" transform="translate(21.4 182.3) rotate(-45)">周</text>
+			<text class="italic" transform="translate(329 267.1) rotate(-20)">d</text>
+			<text class="roman" transform="translate(297.8 347.2) rotate(-20)">直径</text>
+		</g>
+		<g systemLanguage="ro">
+			<text class="italic" transform="translate(282.6 40.4)">C</text>
+			<text class="roman" transform="translate(15 200) rotate(-45)">circumferință</text>
+			<text class="italic" transform="translate(329 267.1) rotate(-20)">d</text>
+			<text class="roman" transform="translate(297.8 347.2) rotate(-20)">diametru</text>
+		</g>
+		<g systemLanguage="zh">
+			<text class="italic" transform="translate(282.6 40.4)">C</text>
+			<text class="roman" transform="translate(21.4 182.3) rotate(-45)">周長</text>
+			<text class="italic" transform="translate(329 267.1) rotate(-20)">d</text>
+			<text class="roman" transform="translate(297.8 347.2) rotate(-20)">直徑</text>
+		</g>
+		<g systemLanguage="zh-hans">
+			<text class="italic" transform="translate(282.6 40.4)">C</text>
+			<text class="roman" transform="translate(21.4 182.3) rotate(-45)">周长</text>
+			<text class="italic" transform="translate(329 267.1) rotate(-20)">d</text>
+			<text class="roman" transform="translate(297.8 347.2) rotate(-20)">直径</text>
+		</g>
+		<g systemLanguage="is">
+			<text class="italic" transform="translate(282.6 40.4)">C</text>
+			<text class="roman" transform="translate(21.4 182.3) rotate(-45)">ummál</text>
+			<text class="italic" transform="translate(329 267.1) rotate(-20)">d</text>
+			<text class="roman" transform="translate(297.8 347.2) rotate(-20)">þvermál</text>
+		</g>
+	</switch>
+	<circle class="circle" cx="299.7" cy="297.4" r="252"/>
+	<path d="M306.8,294.6l-5.4,5.4,5.4,5.4-1.4,1.4-5.4-5.4-5.4,5.4-1.4-1.4,5.4-5.4-5.4-5.4,1.4-1.4,5.4,5.4,5.4-5.4Z" transform="translate(-0.3 -2.6)"/>
+	<path class="blue" d="M255.5,32.6l6.2,5.2C139.6,55.3,46.9,152.5,36,276.9,23.3,422.6,131.2,551.3,276.9,564S551.3,468.8,564,323.1C576.3,182.5,476.2,57.8,338.3,37.8l6.2-5.2L323,36.8l20.4,7.8-4.3-5.2C475.7,59.8,574.7,183.5,562.5,323,549.8,467.9,421.9,575.2,277,562.5S24.8,422,37.5,277.1C48.3,153.7,140,57.2,260.9,39.4l-4.3,5.2L277,36.8Z" transform="translate(-0.3 -2.6)"/>
+	<path class="blue" d="M81.7,373,63.8,385.9l22-1.5L79,381.2l442.5-161-3.2,6.8,17.9-12.9-22,1.5,6.8,3.2L78.5,379.8Z" transform="translate(-0.3 -2.6)"/>
+</svg>

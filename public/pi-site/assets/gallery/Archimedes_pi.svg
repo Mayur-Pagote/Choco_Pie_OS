@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="750" height="250" viewBox="0 0 750 250">
+  <path d="M125,13.8 230.1,90.6 190.4,215 59.6,215 19.2,90.6 Z" fill="#f8dcc1" stroke="#bc927d" stroke-width="2"/>
+  <path d="M72.1,197.8 177.9,197.8 210.6,97.2 125,35 39.4,97.2 Z" fill="#fbe3b3" stroke="#dea57a" stroke-width="2"/>
+  <circle cx="125" cy="125" r="90" fill="none" stroke="black" stroke-width="2"/>
+  <path d="M323,35 427,35 478.9,125 427,215 323,215 271.1,125 Z" fill="#f1ecfb" stroke="#9b79be" stroke-width="2"/>
+  <path d="M285,125 330,47.1 420,47.1 465,125 420,202.9 330,202.9 Z" fill="#deecfd" stroke="#92a6cb" stroke-width="2"/>
+  <circle cx="375" cy="125" r="90" fill="none" stroke="black" stroke-width="2"/>
+  <path d="M587.7,35 662.3,35 715,87.7 715,162.3 662.3,215 587.7,215 535,162.3 535,87.7 Z" fill="#dcf1e0" stroke="#70bd6b" stroke-width="2"/>
+  <path d="M590.6,41.9 659.4,41.9 708.1,90.6 708.1,159.4 708.1,159.4 659.4,208.1 590.6,208.1 541.9,159.4 541.9,90.6 Z" fill="#d2f5eb" stroke="#89a8a7" stroke-width="2"/>
+  <circle cx="625" cy="125" r="90" fill="none" stroke="black" stroke-width="2"/>
+</svg>

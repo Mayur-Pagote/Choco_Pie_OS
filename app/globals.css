@@ -1,0 +1,417 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --wallpaper-accent: #d7566f;
+  --desktop-font: "Nunito Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --desktop-shell-bg: #111827;
+  --desktop-text: #223041;
+  --desktop-overlay: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.12));
+  --panel-border: rgba(255, 255, 255, 0.7);
+  --panel-fill: #f4f4f4;
+  --desktop-panel-text: #111111;
+  --desktop-panel-separator: #9a9a9a;
+  --desktop-panel-hover: rgba(0, 0, 0, 0.05);
+  --desktop-panel-active: rgba(0, 0, 0, 0.08);
+  --panel-shadow: 0 16px 36px rgba(16, 24, 40, 0.18);
+  --window-border: rgba(255, 255, 255, 0.8);
+  --window-fill: rgba(246, 248, 251, 0.82);
+  --window-fill-strong: rgba(255, 255, 255, 0.92);
+  --window-body-border: rgba(207, 215, 226, 0.82);
+  --window-shadow: 0 26px 60px rgba(12, 20, 32, 0.26);
+  --window-title-active-bg: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(246,248,252,0.88));
+  --window-title-idle-bg: linear-gradient(180deg, rgba(245,247,251,0.86), rgba(233,238,244,0.78));
+  --window-title-text: #2b3a4c;
+  --window-title-muted: #708094;
+  --window-title-stripe-idle: #cbd5e1;
+  --window-control-fill: rgba(255,255,255,0.9);
+  --window-control-border: #d9e0ea;
+  --window-control-text: #4a586e;
+  --window-close-fill: #fff0f4;
+  --window-close-border: #f1b7c3;
+  --soft-border: rgba(122, 140, 161, 0.22);
+  --desktop-flyout-bg: rgba(247, 247, 247, 0.96);
+  --desktop-flyout-border: rgba(207, 207, 207, 0.92);
+  --desktop-flyout-text: #202020;
+  --desktop-flyout-muted: #666666;
+  --desktop-flyout-hover: rgba(217, 236, 255, 0.95);
+  --desktop-flyout-button-bg: rgba(255, 255, 255, 0.82);
+  --desktop-menu-active-bg: #9ca7b5;
+  --desktop-menu-active-text: #ffffff;
+  --desktop-menu-item-text: #202020;
+  --desktop-menu-hover: #d9ecff;
+  --desktop-menu-arrow: #2f2f2f;
+  --desktop-notification-bg: rgba(255, 255, 255, 0.72);
+  --desktop-notification-border: rgba(255, 255, 255, 0.7);
+
+  --system-app-bg: #f4f6fb;
+  --system-app-surface: #ffffff;
+  --system-app-surface-soft: #f5f7fb;
+  --system-app-surface-hover: #edf2f9;
+  --system-app-border: #d7dfea;
+  --system-app-text: #1f2a3a;
+  --system-app-muted: #6b7a90;
+  --system-app-strong: #243246;
+  --system-app-shadow: 0 12px 26px rgba(16, 24, 40, 0.14);
+}
+
+html[data-os-theme="dark"] {
+  --desktop-shell-bg: #0b1020;
+  --desktop-text: #e6edf8;
+  --desktop-overlay: linear-gradient(180deg, rgba(8,12,24,0.14), rgba(2,6,23,0.28));
+  --panel-fill: rgba(17, 24, 39, 0.92);
+  --desktop-panel-text: #eef3ff;
+  --desktop-panel-separator: rgba(148, 163, 184, 0.4);
+  --desktop-panel-hover: rgba(255, 255, 255, 0.08);
+  --desktop-panel-active: rgba(255, 255, 255, 0.12);
+  --panel-border: rgba(43, 58, 84, 0.82);
+  --window-border: rgba(61, 77, 105, 0.82);
+  --window-fill: rgba(17, 24, 39, 0.9);
+  --window-fill-strong: rgba(12, 18, 31, 0.92);
+  --window-body-border: rgba(53, 67, 91, 0.9);
+  --window-shadow: 0 26px 60px rgba(1, 6, 15, 0.5);
+  --window-title-active-bg: linear-gradient(180deg, rgba(30,41,59,0.98), rgba(15,23,42,0.92));
+  --window-title-idle-bg: linear-gradient(180deg, rgba(30,41,59,0.88), rgba(15,23,42,0.8));
+  --window-title-text: #eef4ff;
+  --window-title-muted: #9fb0c6;
+  --window-title-stripe-idle: rgba(100, 116, 139, 0.55);
+  --window-control-fill: rgba(30,41,59,0.95);
+  --window-control-border: rgba(71,85,105,0.95);
+  --window-control-text: #d7e1f2;
+  --window-close-fill: rgba(127,29,29,0.28);
+  --window-close-border: rgba(248,113,113,0.35);
+  --soft-border: rgba(84, 102, 132, 0.4);
+  --desktop-flyout-bg: rgba(15, 23, 42, 0.96);
+  --desktop-flyout-border: rgba(51, 65, 85, 0.95);
+  --desktop-flyout-text: #eff5ff;
+  --desktop-flyout-muted: #9fb0c6;
+  --desktop-flyout-hover: rgba(59, 130, 246, 0.18);
+  --desktop-flyout-button-bg: rgba(30, 41, 59, 0.94);
+  --desktop-menu-active-bg: rgba(59, 130, 246, 0.34);
+  --desktop-menu-active-text: #eff5ff;
+  --desktop-menu-item-text: #e5edf9;
+  --desktop-menu-hover: rgba(59, 130, 246, 0.2);
+  --desktop-menu-arrow: #a8bad4;
+  --desktop-notification-bg: rgba(15, 23, 42, 0.86);
+  --desktop-notification-border: rgba(71, 85, 105, 0.7);
+
+  --system-app-bg: #0f172a;
+  --system-app-surface: #172238;
+  --system-app-surface-soft: #1d2b45;
+  --system-app-surface-hover: #253758;
+  --system-app-border: #334867;
+  --system-app-text: #e7eefb;
+  --system-app-muted: #a5b5cf;
+  --system-app-strong: #f3f7ff;
+  --system-app-shadow: 0 14px 30px rgba(3, 8, 20, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  overflow: hidden;
+  font-family: var(--desktop-font);
+  color: var(--desktop-text);
+  background: #111827;
+  user-select: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+iframe {
+  border: 0;
+}
+
+.desktop-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 92px 92px;
+  mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.36), transparent 85%);
+}
+
+.desktop-overlay {
+  background: var(--desktop-overlay);
+}
+
+.desktop-panel {
+  border-top: 1px solid var(--panel-border);
+  border-bottom: 1px solid var(--panel-border);
+  background: var(--panel-fill);
+  box-shadow: none;
+  backdrop-filter: saturate(140%) blur(8px);
+}
+
+.desktop-panel-button {
+  border: 1px solid transparent;
+  background: transparent;
+  box-shadow: none;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    background-color 140ms ease;
+}
+
+.desktop-panel-button:hover {
+  transform: none;
+  background: var(--desktop-panel-hover);
+  box-shadow: none;
+}
+
+.desktop-panel-button:active,
+.desktop-panel-button[data-active="true"] {
+  background: var(--desktop-panel-active);
+  border-color: var(--desktop-panel-active);
+  box-shadow: none;
+}
+
+.window-shell {
+  border: 1px solid var(--window-border);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--window-fill-strong) 96%, transparent), color-mix(in srgb, var(--window-fill) 92%, transparent)),
+    var(--window-fill);
+  box-shadow: var(--window-shadow);
+  backdrop-filter: blur(22px) saturate(135%);
+}
+
+.window-body {
+  border: 1px solid var(--window-body-border);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--window-fill-strong) 98%, transparent), color-mix(in srgb, var(--window-fill) 94%, transparent)),
+    var(--window-fill-strong);
+}
+
+.soft-card {
+  border: 1px solid rgba(194, 204, 218, 0.58);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(246, 248, 252, 0.84)),
+    rgba(255, 255, 255, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 12px 32px rgba(52, 67, 89, 0.08);
+}
+
+.selection-ring {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.94),
+    0 0 0 3px rgba(216, 83, 107, 0.78);
+}
+
+.desktop-flyout {
+  border: 1px solid var(--desktop-flyout-border);
+  background: var(--desktop-flyout-bg);
+  box-shadow: 2px 3px 10px rgba(0, 0, 0, 0.22);
+}
+
+.desktop-notification {
+  border: 1px solid var(--desktop-notification-border);
+  background: var(--desktop-notification-bg);
+  box-shadow: 0 20px 40px rgba(17, 24, 39, 0.16);
+}
+
+.app-window-content {
+  min-width: 0;
+  min-height: 0;
+  container-type: inline-size;
+  container-name: app-window;
+}
+
+.app-window-content > * {
+  min-width: 0;
+  min-height: 0;
+}
+
+.system-app {
+  min-width: 0;
+  min-height: 0;
+  background: var(--system-app-bg);
+  color: var(--system-app-text);
+}
+
+.app-split-layout > aside {
+  flex-shrink: 0;
+}
+
+.app-toolbar-wrap > .app-toolbar-grow {
+  min-width: 0;
+  flex: 1 1 220px;
+}
+
+.app-table-row {
+  min-width: 0;
+}
+
+@container app-window (max-width: 860px) {
+  .app-split-layout {
+    flex-direction: column;
+  }
+
+  .app-split-layout > aside {
+    width: 100% !important;
+    max-height: 44%;
+    overflow: auto;
+    border-right-width: 0 !important;
+    border-bottom: 1px solid var(--system-app-border);
+  }
+
+  .app-toolbar-wrap {
+    align-items: flex-start;
+  }
+
+  .settings-main-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container app-window (min-width: 861px) {
+  .settings-main-grid {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+}
+
+@container app-window (max-width: 640px) {
+  .app-table-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+    row-gap: 0.45rem;
+  }
+}
+
+html[data-os-theme="dark"] .soft-card {
+  border-color: var(--system-app-border);
+  background: linear-gradient(180deg, rgba(29, 43, 69, 0.94), rgba(23, 34, 56, 0.9));
+  box-shadow:
+    inset 0 1px 0 rgba(148, 163, 184, 0.12),
+    var(--system-app-shadow);
+}
+
+html[data-os-theme="dark"] .system-app [class*="bg-[linear-gradient(180deg,#f9fbfd,#edf2f7)]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[linear-gradient(180deg,#f8fafc,#edf2f7)]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[radial-gradient(circle_at_top,rgba(255,236,214,0.7),transparent_38%),linear-gradient(180deg,#f7f8fa,#edf2f7)]"] {
+  background-image: none !important;
+  background-color: var(--system-app-bg) !important;
+}
+
+html[data-os-theme="dark"] .system-app [class*="bg-[#f4f4f4]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#f5f7fa]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#f4f6f8]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#f7f8fa]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#f8f8f8]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#f8fafc]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#fafafa]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#fbfbfb]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#ececec]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#e8e8e8]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#edf2f7]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#f9fbfd]"],
+html[data-os-theme="dark"] .system-app [class*="bg-white"] {
+  background-color: var(--system-app-surface) !important;
+}
+
+html[data-os-theme="dark"] .system-app [class*="bg-[#f6f6f6]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#f0f0f0]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#f7fafc]"] {
+  background-color: var(--system-app-surface-soft) !important;
+}
+
+html[data-os-theme="dark"] .system-app [class*="hover:bg-[#f6f6f6]"]:hover,
+html[data-os-theme="dark"] .system-app [class*="hover:bg-[#fcfdff]"]:hover,
+html[data-os-theme="dark"] .system-app [class*="hover:bg-white"]:hover {
+  background-color: var(--system-app-surface-hover) !important;
+}
+
+html[data-os-theme="dark"] .system-app [class*="bg-[#d9ecff]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#e7f2ff]"],
+html[data-os-theme="dark"] .system-app [class*="bg-[#f9e5e7]"] {
+  background-color: rgba(59, 130, 246, 0.22) !important;
+}
+
+html[data-os-theme="dark"] .system-app [class*="text-[#202020]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#1f2937]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#1c2a3c]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#223041]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#233244]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#263447]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#374151]"] {
+  color: var(--system-app-strong) !important;
+}
+
+html[data-os-theme="dark"] .system-app [class*="text-[#666666]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#5f5f5f]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#728295]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#767676]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#7a7a7a]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#777777]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#8390a3]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#8a94a6]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#95a2b3]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#97a4b5]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#5b6472]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#5b6b80]"],
+html[data-os-theme="dark"] .system-app [class*="text-[#64748b]"] {
+  color: var(--system-app-muted) !important;
+}
+
+html[data-os-theme="dark"] .system-app [class*="border-[#d8d8d8]"],
+html[data-os-theme="dark"] .system-app [class*="border-[#d1d1d1]"],
+html[data-os-theme="dark"] .system-app [class*="border-[#d0d0d0]"],
+html[data-os-theme="dark"] .system-app [class*="border-[#d4d4d4]"],
+html[data-os-theme="dark"] .system-app [class*="border-[#dbe1e8]"],
+html[data-os-theme="dark"] .system-app [class*="border-[#dbe3ed]"],
+html[data-os-theme="dark"] .system-app [class*="border-[#dddddd]"],
+html[data-os-theme="dark"] .system-app [class*="border-[#e0e0e0]"],
+html[data-os-theme="dark"] .system-app [class*="border-[#e2e8f0]"],
+html[data-os-theme="dark"] .system-app [class*="border-[#e5e5e5]"],
+html[data-os-theme="dark"] .system-app [class*="border-[#f0f0f0]"] {
+  border-color: var(--system-app-border) !important;
+}
+
+html[data-os-theme="dark"] .system-app [class*="placeholder:text-[#6d8b76]"],
+html[data-os-theme="dark"] .system-app [class*="placeholder:text-[#8ea0bc]"] {
+  color: var(--system-app-muted) !important;
+}
+
+html[data-os-theme="dark"] .system-app :is(input, textarea, select) {
+  color: var(--system-app-strong);
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 162, 184, 0.75) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(181, 192, 206, 0.96), rgba(137, 151, 172, 0.96));
+  background-clip: padding-box;
+}

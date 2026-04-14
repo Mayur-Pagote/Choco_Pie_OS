@@ -1,0 +1,27 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="skyB" x1="960" y1="0" x2="960" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#4A5A73"/>
+      <stop offset="0.36" stop-color="#775B7A"/>
+      <stop offset="0.67" stop-color="#D96B63"/>
+      <stop offset="1" stop-color="#F6C06D"/>
+    </linearGradient>
+    <radialGradient id="sunGlowB" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(870 300) rotate(90) scale(290 370)">
+      <stop stop-color="#FFF5D8"/>
+      <stop offset="0.44" stop-color="#FFE2AC" stop-opacity="0.86"/>
+      <stop offset="1" stop-color="#FFE2AC" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="terrainB" x1="960" y1="640" x2="960" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D15467" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#111827" stop-opacity="0.94"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#skyB)"/>
+  <rect width="1920" height="1080" fill="url(#sunGlowB)"/>
+  <path d="M0 561C204 534 354 556 489 601C616 643 751 721 919 715C1091 708 1221 604 1391 575C1558 546 1712 576 1920 666V1080H0V561Z" fill="#F2A96D" fill-opacity="0.18"/>
+  <path d="M0 683C118 617 216 605 318 627C446 654 540 744 689 764C823 783 955 734 1083 686C1215 636 1319 623 1449 648C1628 683 1736 749 1920 752V1080H0V683Z" fill="#5E2F49" fill-opacity="0.74"/>
+  <path d="M0 745C152 691 263 688 393 729C525 770 640 842 794 842C950 842 1068 764 1193 732C1321 700 1439 712 1549 762C1665 814 1754 853 1920 860V1080H0V745Z" fill="url(#terrainB)"/>
+  <path d="M0 818C170 776 290 771 411 800C542 831 645 910 803 918C961 925 1088 867 1243 842C1397 817 1507 835 1622 884C1715 923 1813 956 1920 972V1080H0V818Z" fill="#141C2D"/>
+  <path d="M0 892C146 840 277 827 410 850C552 875 646 946 835 960C1027 974 1154 923 1273 901C1391 879 1507 889 1616 922C1705 949 1806 986 1920 1002V1080H0V892Z" fill="#0D1321"/>
+  <circle cx="876" cy="316" r="96" fill="#FFF2C5"/>
+</svg>

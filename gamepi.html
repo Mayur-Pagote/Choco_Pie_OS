@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Pi – Your Universe of Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Rajdhani:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep:       #080b12;
+    --bg-mid:        #0d1220;
+    --bg-card:       #111827;
+    --bg-hover:      #1a2540;
+    --accent:        #00e5ff;
+    --accent2:       #7c3aed;
+    --accent3:       #f59e0b;
+    --green:         #22d05a;
+    --red:           #ef4444;
+    --text-primary:  #e2e8f0;
+    --text-muted:    #64748b;
+    --text-dim:      #94a3b8;
+    --border:        rgba(0,229,255,0.08);
+    --glow:          0 0 20px rgba(0,229,255,0.25);
+    --glow-lg:       0 0 60px rgba(0,229,255,0.15), 0 0 120px rgba(124,58,237,0.10);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Rajdhani', sans-serif;
+    background: var(--bg-deep);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* ─── DYNAMIC BACKGROUND ─── */
+  #bg-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .content-wrap { position: relative; z-index: 1; }
+
+  /* ─── NAVBAR ─── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(8,11,18,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2.5rem;
+    height: 62px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: #fff;
+    font-family: 'Orbitron', monospace;
+    box-shadow: 0 0 16px rgba(0,229,255,0.5);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .logo-icon::after {
+    content: '';
+    position: absolute;
+    width: 60%;
+    height: 60%;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    top: 5%;
+    left: 15%;
+  }
+
+  .logo-text {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.3rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 0.05em;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.9rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .nav-links a:hover {
+    color: var(--accent);
+    background: rgba(0,229,255,0.06);
+  }
+
+  .nav-links a.active {
+    color: var(--accent);
+  }
+
+  .nav-links a.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+    box-shadow: var(--glow);
+  }
+
+  .nav-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+
+  .search-bar:focus-within {
+    border-color: var(--accent);
+    box-shadow: var(--glow);
+  }
+
+  .search-bar input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-primary);
+    padding: 0.45rem 1rem;
+    width: 220px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .search-bar input::placeholder { color: var(--text-muted); }
+
+  .search-bar button {
+    background: var(--accent);
+    border: none;
+    cursor: pointer;
+    padding: 0.45rem 0.8rem;
+    color: var(--bg-deep);
+    transition: all 0.2s;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .search-bar button:hover { background: #00c4e0; }
+
+  .btn-install {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem 1.2rem;
+    border-radius: 8px;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    transition: all 0.2s;
+    white-space: nowrap;
+    box-shadow: 0 0 12px rgba(0,229,255,0.3);
+  }
+
+  .btn-install:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(0,229,255,0.45);
+  }
+
+  .btn-signin {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    transition: color 0.2s;
+  }
+
+  .btn-signin:hover { color: var(--accent); }
+
+  /* ─── BREADCRUMB ─── */
+  .breadcrumb {
+    padding: 1rem 3rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb span { opacity: 0.4; }
+
+  /* ─── HERO SECTION ─── */
+  .hero {
+    padding: 1.5rem 3rem 2rem;
+  }
+
+  .hero h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.2rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(90deg, var(--text-primary) 40%, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .hero-card {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    aspect-ratio: 16/9;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+
+  .hero-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--glow-lg);
+  }
+
+  .hero-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Placeholder hero images using CSS gradients */
+  .hero-img-1 {
+    background: linear-gradient(135deg, #1a0a2e 0%, #16213e 30%, #0f3460 60%, #533483 100%);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+  }
+
+  .hero-img-2 {
+    background: linear-gradient(135deg, #1a0000 0%, #3d0000 30%, #7c0000 60%, #c0392b 100%);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+  }
+
+  .hero-fake-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    font-weight: 900;
+    color: rgba(255,255,255,0.9);
+    text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+    text-align: center;
+    padding: 1rem;
+    line-height: 1.2;
+  }
+
+  .hero-fake-title span {
+    display: block;
+    font-size: 0.7em;
+    opacity: 0.6;
+    font-weight: 400;
+    letter-spacing: 0.2em;
+    margin-bottom: 0.3em;
+  }
+
+  .hero-card-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem 1.2rem;
+    background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .hero-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+
+  .hero-price {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .hero-price .original {
+    text-decoration: line-through;
+    opacity: 0.5;
+    font-size: 0.85rem;
+    margin-right: 0.4rem;
+  }
+
+  .hero-price .discounted { color: var(--accent3); }
+
+  .discount-badge {
+    background: var(--accent3);
+    color: var(--bg-deep);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.6rem;
+    border-radius: 6px;
+  }
+
+  /* ─── GLARE OVERLAY (applied to game cards) ─── */
+  .glare-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .glare-card .glare-effect {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%),
+      rgba(255,255,255,0.22) 0%,
+      rgba(255,255,255,0.06) 35%,
+      transparent 65%
+    );
+    opacity: 0;
+    transition: opacity 0.25s;
+    pointer-events: none;
+    z-index: 10;
+    border-radius: inherit;
+  }
+
+  .glare-card:hover .glare-effect { opacity: 1; }
+
+  /* ─── TOP SELLERS CAROUSEL ─── */
+  .section { padding: 1.5rem 3rem; }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+  }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-primary);
+  }
+
+  .section-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    letter-spacing: 0.05em;
+  }
+
+  .carousel-wrap {
+    position: relative;
+  }
+
+  .carousel {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding-bottom: 0.5rem;
+  }
+
+  .carousel::-webkit-scrollbar { display: none; }
+
+  .carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,229,255,0.12);
+    border: 1px solid rgba(0,229,255,0.2);
+    color: var(--accent);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    z-index: 5;
+    transition: all 0.2s;
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .carousel-btn:hover {
+    background: rgba(0,229,255,0.25);
+    box-shadow: var(--glow);
+  }
+
+  .carousel-btn.prev { left: -18px; }
+  .carousel-btn.next { right: -18px; }
+
+  /* ─── GAME THUMB CARD ─── */
+  .thumb-card {
+    flex-shrink: 0;
+    width: 230px;
+    scroll-snap-align: start;
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+  }
+
+  .thumb-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6), var(--glow);
+    border-color: rgba(0,229,255,0.25);
+  }
+
+  .thumb-img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    display: block;
+    position: relative;
+  }
+
+  .thumb-img-inner {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .live-badge {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    background: #e53e3e;
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .live-badge::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    border-radius: 50%;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .thumb-info {
+    padding: 0.7rem 0.8rem 0.8rem;
+  }
+
+  .thumb-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.4rem;
+  }
+
+  .price-badge {
+    background: var(--green);
+    color: var(--bg-deep);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .price-original {
+    text-decoration: line-through;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+  }
+
+  .price-final {
+    color: var(--accent3);
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .price-free {
+    color: var(--green);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+
+  /* ─── MAIN CONTENT GRID ─── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 2rem;
+    padding: 1rem 3rem 3rem;
+    align-items: start;
+  }
+
+  /* ─── TAB NAVIGATION ─── */
+  .tab-nav {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.2rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.7rem 1.3rem;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+  }
+
+  .tab-btn:hover { color: var(--text-primary); }
+
+  .tab-btn.active {
+    color: var(--text-primary);
+    background: rgba(0,229,255,0.05);
+  }
+
+  .tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+    box-shadow: var(--glow);
+  }
+
+  /* ─── GAME ROW LIST ─── */
+  .game-row {
+    display: flex;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+    margin-bottom: 0.4rem;
+    background: rgba(255,255,255,0.02);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .game-row:hover {
+    background: var(--bg-hover);
+    border-color: rgba(0,229,255,0.15);
+  }
+
+  .game-row .glare-effect {
+    border-radius: 10px;
+  }
+
+  .game-row-img {
+    width: 120px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+  }
+
+  .game-row-fake-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: rgba(255,255,255,0.7);
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .game-row-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .game-row-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: var(--text-primary);
+    margin-bottom: 0.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .game-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+  }
+
+  .tag {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    padding: 1px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  .game-row-price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 0.3rem;
+    flex-shrink: 0;
+    min-width: 90px;
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar-section {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+  }
+
+  .sidebar-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    padding: 0.9rem 1rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,229,255,0.03);
+  }
+
+  .sidebar-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem;
+    padding: 0.8rem;
+  }
+
+  .sidebar-game-card {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    aspect-ratio: 16/9;
+    border: 1px solid var(--border);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .sidebar-game-card:hover {
+    transform: scale(1.04);
+    box-shadow: var(--glow);
+  }
+
+  .sidebar-fake-img {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: rgba(255,255,255,0.8);
+    text-align: center;
+    padding: 0.2rem;
+    line-height: 1.3;
+  }
+
+  .sidebar-price {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.8);
+    padding: 3px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+    font-size: 0.68rem;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: rgba(0,0,0,0.4);
+    border-top: 1px solid var(--border);
+    padding: 3rem;
+    margin-top: 2rem;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 2.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .footer-brand .logo-text {
+    font-size: 1.5rem;
+    display: block;
+    margin-bottom: 0.8rem;
+  }
+
+  .footer-desc {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    line-height: 1.7;
+    font-weight: 400;
+  }
+
+  .footer-col h4 {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+
+  .footer-col a {
+    display: block;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    transition: color 0.2s;
+  }
+
+  .footer-col a:hover { color: var(--accent); }
+
+  .footer-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-weight: 400;
+  }
+
+  .footer-bottom span {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--accent);
+    opacity: 0.7;
+  }
+
+  /* ─── GAME ILLUSTRATIONS (SVG-based fake covers) ─── */
+  .cover-death { background: linear-gradient(135deg, #0a0a1a, #1a0530, #2d1b69, #4c2889); }
+  .cover-cinderia { background: linear-gradient(135deg, #1a0000, #3d0000, #6b1010, #8b0000); }
+  .cover-soulmask { background: linear-gradient(135deg, #1a1200, #3d2800, #6b4800, #8b6914); }
+  .cover-crimson { background: linear-gradient(135deg, #0a0000, #1a0a00, #3d1500, #6b2600); }
+  .cover-vostok { background: linear-gradient(135deg, #00101a, #00253d, #003d6b, #004d8b); }
+  .cover-seven { background: linear-gradient(135deg, #001a0a, #003d1a, #006b2d, #008b3d); }
+  .cover-skull { background: linear-gradient(135deg, #0a000a, #1a001a, #3d003d, #6b006b); }
+  .cover-sol { background: linear-gradient(135deg, #0a0a00, #1a1a00, #3d3d00, #5a5a00); }
+  .cover-extinct { background: linear-gradient(135deg, #000a00, #001a00, #003d00, #006b00); }
+  .cover-arcadia { background: linear-gradient(135deg, #00001a, #00003d, #00006b, #0000a0); }
+  .cover-final { background: linear-gradient(135deg, #100010, #200020, #400040, #600060); }
+  .cover-spotter { background: linear-gradient(135deg, #1a0800, #3d1500, #6b2d00, #8b4800); }
+  .cover-powerwash { background: linear-gradient(135deg, #001520, #002d40, #004d6b, #0066a0); }
+  .cover-kuloniku { background: linear-gradient(135deg, #1a000a, #3d0015, #6b002d, #8b0040); }
+  .cover-re3 { background: linear-gradient(135deg, #0a0500, #1a0a00, #3d1500, #5a2000); }
+  .cover-re2 { background: linear-gradient(135deg, #050a00, #0a1a00, #153d00, #1a5a00); }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg-deep); }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0,229,255,0.2);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0,229,255,0.4); }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .fade-in { animation: fadeInUp 0.5s ease both; }
+  .delay-1 { animation-delay: 0.1s; }
+  .delay-2 { animation-delay: 0.2s; }
+  .delay-3 { animation-delay: 0.3s; }
+  .delay-4 { animation-delay: 0.4s; }
+
+  /* ─── PLATFORM ICONS ─── */
+  .platform-icons {
+    display: flex;
+    gap: 0.3rem;
+    margin-top: 0.4rem;
+  }
+
+  .platform-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.5;
+  }
+
+  /* ─── CURSOR STYLE ─── */
+  .glare-card, .thumb-card, .game-row, .sidebar-game-card, .hero-card { cursor: pointer; }
+
+  /* ─── NOTIFICATION DOT ─── */
+  .nav-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fff;
+    cursor: pointer;
+    font-family: 'Orbitron', monospace;
+    position: relative;
+    transition: box-shadow 0.2s;
+  }
+  .nav-avatar:hover { box-shadow: 0 0 16px rgba(124,58,237,0.5); }
+
+  /* ─── SEPARATOR ─── */
+  .sep {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="content-wrap">
+
+  <!-- NAVBAR -->
+  <nav>
+    <a href="#" class="logo">
+      <div class="logo-icon">π</div>
+      <span class="logo-text">GAME PI</span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#" class="active">STORE</a></li>
+      <li><a href="#">COMMUNITY</a></li>
+      <li><a href="#">ABOUT</a></li>
+      <li><a href="#">SUPPORT</a></li>
+    </ul>
+
+    <div class="nav-right">
+      <div class="search-bar">
+        <input type="text" placeholder="Search the store…">
+        <button>⌕</button>
+      </div>
+      <button class="btn-install">▼ Install App</button>
+      <a href="#" class="btn-signin">sign in</a>
+      <span class="sep">|</span>
+      <a href="#" class="btn-signin">language ▾</a>
+      <div class="nav-avatar">π</div>
+    </div>
+  </nav>
+
+  <!-- BREADCRUMB + HERO -->
+  <div class="breadcrumb fade-in">
+    <a href="#">All Products</a>
+    <span>›</span>
+    <span>New Releases</span>
+  </div>
+
+  <section class="hero fade-in delay-1">
+    <h1>New Releases</h1>
+
+    <div class="hero-grid">
+      <!-- Hero Card 1: Death Stranding 2 -->
+      <div class="hero-card glare-card">
+        <div class="cover-death" style="width:100%;height:100%;position:relative;">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div style="font-family:'Orbitron',monospace;font-size:0.7rem;letter-spacing:0.3em;color:rgba(255,255,255,0.5);margin-bottom:0.5rem;">A HIDEO KOJIMA GAME</div>
+            <div style="font-family:'Orbitron',monospace;font-size:2.2rem;font-weight:900;color:#e2e8f0;line-height:1;text-align:center;text-shadow:0 2px 30px rgba(100,180,255,0.6);">DEATH<br>STRANDING</div>
+            <div style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:700;color:#00e5ff;margin-top:0.2rem;">2</div>
+            <div style="font-family:'Orbitron',monospace;font-size:0.65rem;letter-spacing:0.2em;color:rgba(255,255,255,0.4);margin-top:0.3rem;">ON THE BEACH</div>
+          </div>
+          <!-- Decorative glow -->
+          <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:60%;height:30%;background:radial-gradient(ellipse,rgba(0,229,255,0.15),transparent);pointer-events:none;"></div>
+        </div>
+        <div class="hero-card-footer">
+          <div>
+            <div class="hero-tag">Popular this month</div>
+            <div class="hero-price">₹ 4,999</div>
+          </div>
+        </div>
+        <div class="glare-effect"></div>
+      </div>
+
+      <!-- Hero Card 2: Cinderia -->
+      <div class="hero-card glare-card">
+        <div class="cover-cinderia" style="width:100%;height:100%;position:relative;">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div style="font-size:3rem;margin-bottom:0.5rem;">✦</div>
+            <div style="font-family:'Orbitron',monospace;font-size:2.4rem;font-weight:900;color:#fff;text-shadow:0 2px 30px rgba(255,80,80,0.8);letter-spacing:0.08em;">CINDERIA</div>
+            <div style="font-size:3rem;margin-top:0.5rem;">✦</div>
+          </div>
+          <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:80%;height:40%;background:radial-gradient(ellipse,rgba(200,0,0,0.2),transparent);pointer-events:none;"></div>
+        </div>
+        <div class="hero-card-footer">
+          <div>
+            <div class="hero-tag">Popular this month</div>
+            <div class="hero-price">
+              <span class="original">₹ 810</span>
+              <span class="discounted">₹ 729</span>
+            </div>
+          </div>
+          <div class="discount-badge">-10%</div>
+        </div>
+        <div class="glare-effect"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOP SELLERS CAROUSEL -->
+  <section class="section fade-in delay-2">
+    <div class="section-header">
+      <span class="section-title">New Top Sellers</span>
+      <span class="section-subtitle">Released This Month</span>
+    </div>
+    <div class="carousel-wrap">
+      <button class="carousel-btn prev" id="carouselPrev">‹</button>
+      <div class="carousel" id="carousel">
+
+        <div class="thumb-card glare-card">
+          <div class="thumb-img">
+            <div class="cover-crimson" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:0.7rem;color:rgba(255,255,255,0.7);letter-spacing:0.05em;text-align:center;line-height:1.5;">CRIMSON<br>DESERT</div>
+          </div>
+          <div class="thumb-info">
+            <div class="thumb-price-row">
+              <span class="price-final">₹ 4,499</span>
+            </div>
+          </div>
+          <div class="glare-effect"></div>
+        </div>
+
+        <div class="thumb-card glare-card">
+          <div class="thumb-img">
+            <div class="cover-soulmask" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:0.75rem;color:rgba(255,220,100,0.9);letter-spacing:0.05em;text-align:center;line-height:1.5;">SOULMASK<br><span style="font-size:0.5rem;opacity:0.7;">V1.0 & EGYPT DLC</span></div>
+            <div class="live-badge">LIVE</div>
+          </div>
+          <div class="thumb-info">
+            <div class="thumb-price-row">
+              <span class="price-badge">-10%</span>
+              <span class="price-original">₹ 1,299</span>
+              <span class="price-final">₹ 1,169</span>
+            </div>
+          </div>
+          <div class="glare-effect"></div>
+        </div>
+
+        <div class="thumb-card glare-card">
+          <div class="thumb-img">
+            <div class="cover-vostok" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:0.8rem;color:rgba(200,230,255,0.9);letter-spacing:0.08em;text-align:center;">ROAD TO<br>VOSTOK</div>
+          </div>
+          <div class="thumb-info">
+            <div class="thumb-price-row">
+              <span class="price-badge">-25%</span>
+              <span class="price-original">₹ 880</span>
+              <span class="price-final">₹ 660</span>
+            </div>
+          </div>
+          <div class="glare-effect"></div>
+        </div>
+
+        <div class="thumb-card glare-card">
+          <div class="thumb-img">
+            <div class="cover-seven" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:0.65rem;color:rgba(180,255,180,0.9);letter-spacing:0.04em;text-align:center;line-height:1.6;">THE SEVEN<br>DEADLY SINS<br><span style="opacity:0.7;">ORIGIN</span></div>
+            <div class="live-badge">LIVE</div>
+          </div>
+          <div class="thumb-info">
+            <div class="thumb-price-row">
+              <span class="price-free">Free To Play</span>
+            </div>
+          </div>
+          <div class="glare-effect"></div>
+        </div>
+
+        <div class="thumb-card glare-card">
+          <div class="thumb-img">
+            <div class="cover-skull" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:0.75rem;color:rgba(255,180,255,0.9);letter-spacing:0.06em;text-align:center;line-height:1.5;">SKULL<br>HORDE</div>
+            <div class="live-badge">LIVE</div>
+          </div>
+          <div class="thumb-info">
+            <div class="thumb-price-row">
+              <span class="price-badge">-25%</span>
+              <span class="price-original">₹ 439</span>
+              <span class="price-final">₹ 329</span>
+            </div>
+          </div>
+          <div class="glare-effect"></div>
+        </div>
+
+        <div class="thumb-card glare-card">
+          <div class="thumb-img">
+            <div class="cover-cinderia" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-size:0.8rem;color:#fff;letter-spacing:0.08em;">CINDERIA</div>
+          </div>
+          <div class="thumb-info">
+            <div class="thumb-price-row">
+              <span class="price-badge">-10%</span>
+              <span class="price-original">₹ 810</span>
+              <span class="price-final">₹ 729</span>
+            </div>
+          </div>
+          <div class="glare-effect"></div>
+        </div>
+
+      </div>
+      <button class="carousel-btn next" id="carouselNext">›</button>
+    </div>
+  </section>
+
+  <!-- MAIN GRID: Game List + Sidebar -->
+  <div class="main-grid fade-in delay-3">
+
+    <!-- LEFT: Game List -->
+    <div>
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab(this,'popular')">Popular New Releases</button>
+        <button class="tab-btn" onclick="switchTab(this,'new')">New Releases</button>
+      </div>
+
+      <div id="popular-tab">
+
+        <!-- Sol Cesto -->
+        <div class="game-row glare-card">
+          <div class="game-row-img">
+            <div class="cover-sol game-row-fake-img">SOL CESTO<br>FULL RELEASE</div>
+          </div>
+          <div class="game-row-info">
+            <div class="game-row-title">Sol Cesto</div>
+            <div class="platform-icons">
+              <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
+            </div>
+            <div class="game-tags">
+              <span class="tag">Dungeon Crawler</span>
+              <span class="tag">Roguelike</span>
+              <span class="tag">Tactical</span>
+              <span class="tag">Puzzle</span>
+            </div>
+          </div>
+          <div class="game-row-price">
+            <span class="price-badge">-33%</span>
+            <span class="price-original">₹ 650</span>
+            <span class="price-final">₹ 435</span>
+          </div>
+          <div class="glare-effect"></div>
+        </div>
+
+        <!-- Extinction Day -->
+        <div class="game-row glare-card">
+          <div class="game-row-img">
+            <div class="cover-extinct game-row-fake-img">EXTINCTION<br>DAY</div>
+          </div>
+          <div class="game-row-info">
+            <div class="game-row-title">Extinction Day</div>
+            <div class="platform-icons">
+              <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
+            </div>
+            <div class="game-tags">
+              <span class="tag">Strategy</span>
+              <span class="tag">Simulation</span>
+              <span class="tag">God Game</span>
+              <span class="tag">Real-Time with Pause</span>
+            </div>
+          </div>
+          <div class="game-row-price">
+            <span class="price-badge">-43%</span>
+            <span class="price-original">₹ 1,234</span>
+            <span class="price-final">₹ 700</span>
+          </div>
+          <div class="glare-effect"></div>
+        </div>
+
+        <!-- Skull Horde -->
+        <div class="game-row glare-card">
+          <div class="game-row-img">
+            <div class="cover-skull game-row-fake-img">SKULL<br>HORDE</div>
+          </div>
+          <div class="game-row-info">
+            <div class="game-row-title">Skull Horde</div>
+            <div class="game-tags">
+              <span class="tag">Dungeon Crawler</span>
+              <span class="tag">Action Roguelike</span>
+              <span class="tag">Auto Battler</span>
+              <span class="tag">Hack and Slash</span>
+            </div>
+          </div>
+          <div class="game-row-price">
+            <span class="price-badge">-25%</span>
+            <span class="price-original">₹ 439</span>
+            <span class="price-final">₹ 329</span>
+          </div>
+          <div class="glare-effect"></div>
+        </div>
+
+        <!-- Soulmask -->
+        <div class="game-row glare-card">
+          <div class="game-row-img">
+            <div class="cover-soulmask game-row-fake-img">SOULMASK<br>V1.0</div>
+          </div>
+          <div class="game-row-info">
+            <div class="game-row-title">Soulmask</div>
+            <div class="game-tags">
+              <span class="tag">Open World</span>
+              <span class="tag">Survival</span>
+              <span class="tag">Multiplayer</span>
+              <span class="tag">Open World Survival Craft</span>
+            </div>
+          </div>
+          <div class="game-row-price">
+            <span class="price-badge">-10%</span>
+            <span class="price-original">₹ 1,299</span>
+            <span class="price-final">₹ 1,169</span>
+          </div>
+          <div class="glare-effect"></div>
+        </div>
+
+        <!-- Arcadia Fallen II -->
+        <div class="game-row glare-card">
+          <div class="game-row-img">
+            <div class="cover-arcadia game-row-fake-img">ARCADIA<br>FALLEN II</div>
+          </div>
+          <div class="game-row-info">
+            <div class="game-row-title">Arcadia Fallen II</div>
+            <div class="game-tags">
+              <span class="tag">Choose Your Own Adventure</span>
+              <span class="tag">Visual Novel</span>
+              <span class="tag">Otome</span>
+              <span class="tag">Dating Sim</span>
+            </div>
+          </div>
+          <div class="game-row-price">
+            <span class="price-badge">-10%</span>
+            <span class="price-original">₹ 1,300</span>
+            <span class="price-final">₹ 1,170</span>
+          </div>
+          <div class="glare-effect"></div>
+        </div>
+
+        <!-- Final Sentence -->
+        <div class="game-row glare-card">
+          <div class="game-row-img">
+            <div class="cover-final game-row-fake-img">FINAL<br>SENTENCE</div>
+          </div>
+          <div class="game-row-info">
+            <div class="game-row-title">Final Sentence</div>
+            <div class="game-tags">
+              <span class="tag">Typing</span>
+              <span class="tag">Horror</span>
+              <span class="tag">Simulation</span>
+              <span class="tag">Survival</span>
+            </div>
+          </div>
+          <div class="game-row-price">
+            <span class="price-badge">-10%</span>
+            <span class="price-original">₹ 499</span>
+            <span class="price-final">₹ 449</span>
+          </div>
+          <div class="glare-effect"></div>
+        </div>
+
+      </div><!-- end popular-tab -->
+    </div><!-- end left col -->
+
+    <!-- RIGHT: Sidebar -->
+    <div>
+      <div class="sidebar-section fade-in delay-4">
+        <div class="sidebar-title">UNDER ₹ 500</div>
+        <div class="sidebar-grid">
+
+          <div class="sidebar-game-card glare-card">
+            <div class="cover-sol sidebar-fake-img">SOL CESTO<br>FULL RELEASE</div>
+            <div class="sidebar-price">
+              <span class="price-badge" style="font-size:0.6rem;padding:1px 5px;">-33%</span>
+              <span class="price-original" style="font-size:0.65rem;">₹ 650</span>
+              <span class="price-final" style="font-size:0.72rem;">₹ 435</span>
+            </div>
+            <div class="glare-effect"></div>
+          </div>
+
+          <div class="sidebar-game-card glare-card">
+            <div class="cover-skull sidebar-fake-img">SKULL<br>HORDE</div>
+            <div class="sidebar-price">
+              <span class="price-badge" style="font-size:0.6rem;padding:1px 5px;">-25%</span>
+              <span class="price-original" style="font-size:0.65rem;">₹ 439</span>
+              <span class="price-final" style="font-size:0.72rem;">₹ 329</span>
+            </div>
+            <div class="glare-effect"></div>
+          </div>
+
+          <div class="sidebar-game-card glare-card">
+            <div class="cover-spotter sidebar-fake-img">THE SPOTTER<br>DIG OR DIE</div>
+            <div class="sidebar-price">
+              <span class="price-badge" style="font-size:0.6rem;padding:1px 5px;">-25%</span>
+              <span class="price-original" style="font-size:0.65rem;">₹ 635</span>
+              <span class="price-final" style="font-size:0.72rem;">₹ 476</span>
+            </div>
+            <div class="glare-effect"></div>
+          </div>
+
+          <div class="sidebar-game-card glare-card">
+            <div class="cover-powerwash sidebar-fake-img">POWER WASH 2<br>ADV. TIME</div>
+            <div class="sidebar-price">
+              <span class="price-final" style="font-size:0.72rem;">₹ 400</span>
+            </div>
+            <div class="glare-effect"></div>
+          </div>
+
+          <div class="sidebar-game-card glare-card">
+            <div class="cover-kuloniku sidebar-fake-img">KULO NIKU<br>BOWL UP!</div>
+            <div class="sidebar-price">
+              <span class="price-badge" style="font-size:0.6rem;padding:1px 5px;">-20%</span>
+              <span class="price-original" style="font-size:0.65rem;">₹ 570</span>
+              <span class="price-final" style="font-size:0.72rem;">₹ 456</span>
+            </div>
+            <div class="glare-effect"></div>
+          </div>
+
+          <div class="sidebar-game-card glare-card">
+            <div class="cover-re3 sidebar-fake-img">RESIDENT EVIL 3<br>NEMESIS</div>
+            <div class="sidebar-price">
+              <span class="price-badge" style="font-size:0.6rem;padding:1px 5px;">-50%</span>
+              <span class="price-original" style="font-size:0.65rem;">₹ 624</span>
+              <span class="price-final" style="font-size:0.72rem;">₹ 312</span>
+            </div>
+            <div class="glare-effect"></div>
+          </div>
+
+          <div class="sidebar-game-card glare-card">
+            <div class="cover-re2 sidebar-fake-img">RESIDENT EVIL 2</div>
+            <div class="sidebar-price">
+              <span class="price-badge" style="font-size:0.6rem;padding:1px 5px;">-50%</span>
+              <span class="price-original" style="font-size:0.65rem;">₹ 624</span>
+              <span class="price-final" style="font-size:0.72rem;">₹ 312</span>
+            </div>
+            <div class="glare-effect"></div>
+          </div>
+
+          <div class="sidebar-game-card glare-card">
+            <div class="cover-final sidebar-fake-img">HAREM<br>THE LAST SURVIVOR</div>
+            <div class="sidebar-price">
+              <span class="price-badge" style="font-size:0.6rem;padding:1px 5px;">-10%</span>
+              <span class="price-original" style="font-size:0.65rem;">₹ 480</span>
+              <span class="price-final" style="font-size:0.72rem;">₹ 432</span>
+            </div>
+            <div class="glare-effect"></div>
+          </div>
+
+        </div>
+      </div>
+    </div><!-- end sidebar -->
+
+  </div><!-- end main-grid -->
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <span class="logo-text">GAME PI</span>
+        <p class="footer-desc">Your universe of games. Discover, play, and connect with millions of players across the galaxy.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <a href="#">New Releases</a>
+        <a href="#">Top Sellers</a>
+        <a href="#">Upcoming</a>
+        <a href="#">Specials</a>
+        <a href="#">Free to Play</a>
+      </div>
+      <div class="footer-col">
+        <h4>Community</h4>
+        <a href="#">Forums</a>
+        <a href="#">Workshop</a>
+        <a href="#">Reviews</a>
+        <a href="#">Guides</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About Game Pi</a>
+        <a href="#">Jobs</a>
+        <a href="#">Press</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span style="color:var(--text-muted);">© 2026 Game Pi. All rights reserved.</span>
+      <span>v3.14.159 π</span>
+    </div>
+  </footer>
+
+</div><!-- end content-wrap -->
+
+<script>
+// ─── DYNAMIC BACKGROUND ───────────────────────────────────────────────
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+
+function resize() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Nebula blobs
+const blobs = [
+  { x: 0.1, y: 0.2, r: 0.45, color: [0, 229, 255],   speed: 0.00007 },
+  { x: 0.8, y: 0.1, r: 0.40, color: [124, 58, 237],  speed: 0.00009 },
+  { x: 0.5, y: 0.8, r: 0.50, color: [245, 158, 11],  speed: 0.00005 },
+  { x: 0.9, y: 0.7, r: 0.35, color: [0, 229, 255],   speed: 0.00008 },
+  { x: 0.2, y: 0.9, r: 0.38, color: [124, 58, 237],  speed: 0.00006 },
+];
+
+// Stars
+const stars = Array.from({ length: 220 }, () => ({
+  x: Math.random(),
+  y: Math.random(),
+  r: Math.random() * 1.2 + 0.2,
+  a: Math.random(),
+  speed: Math.random() * 0.003 + 0.001,
+  phase: Math.random() * Math.PI * 2,
+}));
+
+// Mouse parallax
+let mouse = { x: 0.5, y: 0.5 };
+window.addEventListener('mousemove', e => {
+  mouse.x = e.clientX / window.innerWidth;
+  mouse.y = e.clientY / window.innerHeight;
+});
+
+let t = 0;
+function draw() {
+  t += 1;
+  const W = canvas.width, H = canvas.height;
+
+  // Clear
+  ctx.fillStyle = '#080b12';
+  ctx.fillRect(0, 0, W, H);
+
+  // Nebula blobs
+  blobs.forEach((b, i) => {
+    const ox = Math.sin(t * b.speed * 1.1 + i) * 0.06;
+    const oy = Math.cos(t * b.speed * 0.9 + i * 1.3) * 0.06;
+    const px = (b.x + ox + (mouse.x - 0.5) * 0.03) * W;
+    const py = (b.y + oy + (mouse.y - 0.5) * 0.03) * H;
+    const radius = b.r * Math.min(W, H);
+
+    const grad = ctx.createRadialGradient(px, py, 0, px, py, radius);
+    grad.addColorStop(0, `rgba(${b.color.join(',')}, 0.045)`);
+    grad.addColorStop(0.5, `rgba(${b.color.join(',')}, 0.018)`);
+    grad.addColorStop(1, `rgba(${b.color.join(',')}, 0)`);
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(px, py, radius, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Stars
+  stars.forEach(s => {
+    const flicker = 0.4 + 0.6 * (0.5 + 0.5 * Math.sin(t * s.speed * 60 + s.phase));
+    const px = s.x * W + (mouse.x - 0.5) * s.r * 6;
+    const py = s.y * H + (mouse.y - 0.5) * s.r * 6;
+    ctx.beginPath();
+    ctx.arc(px, py, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${s.a * flicker})`;
+    ctx.fill();
+  });
+
+  // Grid overlay
+  ctx.strokeStyle = 'rgba(0,229,255,0.018)';
+  ctx.lineWidth = 1;
+  const gridSize = 80;
+  for (let x = 0; x < W; x += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, H);
+    ctx.stroke();
+  }
+  for (let y = 0; y < H; y += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(W, y);
+    ctx.stroke();
+  }
+
+  requestAnimationFrame(draw);
+}
+draw();
+
+
+// ─── GLARE EFFECT ────────────────────────────────────────────────────
+document.querySelectorAll('.glare-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const mx = ((e.clientX - rect.left) / rect.width)  * 100;
+    const my = ((e.clientY - rect.top)  / rect.height) * 100;
+    card.style.setProperty('--mx', mx + '%');
+    card.style.setProperty('--my', my + '%');
+  });
+});
+
+
+// ─── CAROUSEL ────────────────────────────────────────────────────────
+const carousel = document.getElementById('carousel');
+document.getElementById('carouselNext').addEventListener('click', () => {
+  carousel.scrollBy({ left: 480, behavior: 'smooth' });
+});
+document.getElementById('carouselPrev').addEventListener('click', () => {
+  carousel.scrollBy({ left: -480, behavior: 'smooth' });
+});
+
+
+// ─── TAB SWITCH ──────────────────────────────────────────────────────
+function switchTab(btn, tabId) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+
+// ─── HOVER CARD 3D TILT ──────────────────────────────────────────────
+document.querySelectorAll('.thumb-card, .hero-card, .sidebar-game-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const cx = rect.left + rect.width  / 2;
+    const cy = rect.top  + rect.height / 2;
+    const dx = (e.clientX - cx) / (rect.width  / 2);
+    const dy = (e.clientY - cy) / (rect.height / 2);
+    card.style.transform = `
+      perspective(600px)
+      rotateY(${dx * 6}deg)
+      rotateX(${-dy * 6}deg)
+      translateY(-5px)
+    `;
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.transform = '';
+  });
+});
+</script>
+
+</body>
+</html>

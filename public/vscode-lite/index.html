@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Choco Pie Project — Visual Studio Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cascadia+Code:wght@300;400;500&family=Segoe+UI:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/skulpt@1.2.0/dist/skulpt-stdlib.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/felixhao28/JSCPP@master/dist/JSCPP.es5.min.js"></script>
+<script>
+(() => {
+  const validThemes = new Set(["light", "dark"]);
+  const queryTheme = new URLSearchParams(window.location.search).get("theme");
+
+  let initialTheme = validThemes.has(queryTheme) ? queryTheme : null;
+
+  if (!initialTheme) {
+    try {
+      const storedTheme =
+        window.localStorage.getItem("desktop-theme") ??
+        window.localStorage.getItem("pi-site-theme");
+      initialTheme = validThemes.has(storedTheme) ? storedTheme : null;
+    } catch (error) {
+      initialTheme = null;
+    }
+  }
+
+  if (!initialTheme && window.matchMedia?.("(prefers-color-scheme: dark)").matches) {
+    initialTheme = "dark";
+  }
+
+  const theme = initialTheme ?? "light";
+  document.documentElement.setAttribute("data-theme", theme);
+  document.documentElement.style.colorScheme = theme;
+})();
+</script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-editor:#1e1e1e;--bg-sidebar:#252526;--bg-act:#333333;
+  --bg-title:#3c3c3c;--bg-tab:#2d2d2d;--bg-tab-active:#1e1e1e;
+  --bg-status:#007acc;--bg-panel:#1e1e1e;--bg-panel-hdr:#252526;
+  --bg-hover:#2a2d2e;--border:#3c3c3c;--border-focus:#007fd4;
+  --text:#cccccc;--muted:#858585;--dim:#6b6b6b;--white:#ffffff;
+  --blue:#569cd6;--lblue:#9cdcfe;--green:#6a9955;--orange:#ce9178;
+  --yellow:#dcdcaa;--purple:#c586c0;--cyan:#4ec9b0;--red:#f44747;
+  --num:#b5cea8;--scroll:#424242;--scroll-h:#6b6b6b;
+  --title-hover:rgba(255,255,255,.12);--window-btn-hover:rgba(255,255,255,.1);
+  --activity-border:#252526;--selected-item:#37373d;--input-bg:#3c3c3c;
+  --gutter-border:rgba(255,255,255,.04);--line-highlight:rgba(255,255,255,.04);
+  --minimap-border:rgba(255,255,255,.05);--minimap-slider:rgba(255,255,255,.07);
+  --menu-bg:#252526;--menu-border:#454545;--menu-hover:#094771;
+  --menu-shadow:0 4px 20px rgba(0,0,0,.65);--cmd-shadow:0 8px 40px rgba(0,0,0,.8);
+  --notification-shadow:0 4px 16px rgba(0,0,0,.5);--sidebar-shadow:4px 0 20px rgba(0,0,0,.5);
+  --loader-backdrop:rgba(30,30,30,.6);--launch-bg:#1e1e1e;--status-hover:rgba(255,255,255,.15);
+  --font-ui:'Segoe UI',system-ui,sans-serif;
+  --font-mono:'Cascadia Code','Courier New',monospace;
+  --fs:13px;--lh:19px;
+}
+html[data-theme="light"]{
+  --bg-editor:#ffffff;--bg-sidebar:#f3f3f3;--bg-act:#f8f8f8;
+  --bg-title:#dddddd;--bg-tab:#ececec;--bg-tab-active:#ffffff;
+  --bg-status:#006bc8;--bg-panel:#ffffff;--bg-panel-hdr:#f3f3f3;
+  --bg-hover:#e8e8e8;--border:#d4d4d4;--border-focus:#007acc;
+  --text:#1f1f1f;--muted:#616161;--dim:#8a8a8a;--white:#ffffff;
+  --blue:#0000ff;--lblue:#001080;--green:#008000;--orange:#a31515;
+  --yellow:#795e26;--purple:#af00db;--cyan:#267f99;--red:#cd3131;
+  --num:#098658;--scroll:#c1c1c1;--scroll-h:#a8a8a8;
+  --title-hover:rgba(0,0,0,.08);--window-btn-hover:rgba(0,0,0,.06);
+  --activity-border:#dbdbdb;--selected-item:#cfe8ff;--input-bg:#ffffff;
+  --gutter-border:rgba(0,0,0,.08);--line-highlight:rgba(0,0,0,.04);
+  --minimap-border:rgba(0,0,0,.08);--minimap-slider:rgba(0,0,0,.12);
+  --menu-bg:#f3f3f3;--menu-border:#c8c8c8;--menu-hover:#cfe8ff;
+  --menu-shadow:0 10px 26px rgba(0,0,0,.16);--cmd-shadow:0 12px 36px rgba(0,0,0,.18);
+  --notification-shadow:0 8px 24px rgba(0,0,0,.14);--sidebar-shadow:4px 0 20px rgba(0,0,0,.14);
+  --loader-backdrop:rgba(255,255,255,.72);--launch-bg:#f5f5f5;--status-hover:rgba(255,255,255,.18);
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg-editor);
+  color:var(--text);font-family:var(--font-ui);font-size:var(--fs);
+  -webkit-font-smoothing:antialiased;user-select:none}
+
+/* ── LAYOUT ── */
+#app{display:flex;flex-direction:column;width:100%;height:100%}
+
+/* ── TITLE BAR ── */
+#titlebar{display:flex;align-items:center;height:30px;background:var(--bg-title);
+  flex-shrink:0;position:relative;-webkit-app-region:drag}
+.vsc-logo{width:16px;height:16px;margin:0 8px 0 10px;flex-shrink:0}
+.menubar{display:flex;align-items:center;height:100%;-webkit-app-region:no-drag}
+.mb-item{padding:0 8px;height:100%;display:flex;align-items:center;
+  color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;
+  transition:background .1s;position:relative}
+.mb-item:hover,.mb-item.open{background:var(--title-hover)}
+.title-center{position:absolute;left:50%;transform:translateX(-50%);
+  font-size:12px;color:var(--muted);pointer-events:none;white-space:nowrap}
+.win-controls{display:flex;align-items:center;margin-left:auto;-webkit-app-region:no-drag}
+.win-btn{width:46px;height:30px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .1s}
+.win-btn:hover{background:var(--window-btn-hover)}
+.win-btn.close:hover{background:#e81123}
+.win-btn svg{width:10px;height:10px;fill:var(--text)}
+.signin-btn{padding:3px 10px;background:#007acc;color:#fff;border:none;
+  border-radius:3px;font-size:12px;cursor:pointer;font-family:var(--font-ui);
+  margin-right:8px;transition:background .1s;-webkit-app-region:no-drag}
+.signin-btn:hover{background:#1a8ad4}
+
+/* ── BODY ── */
+#main-body{display:flex;flex:1;overflow:hidden;min-height:0}
+
+/* ── ACTIVITY BAR ── */
+#actbar{width:48px;background:var(--bg-act);display:flex;flex-direction:column;
+  align-items:center;flex-shrink:0;border-right:1px solid var(--activity-border);z-index:10}
+.act-icon{width:48px;height:48px;display:flex;align-items:center;justify-content:center;
+  cursor:pointer;position:relative;color:var(--muted);transition:color .15s}
+.act-icon:hover{color:var(--text)}
+.act-icon.active{color:var(--text);border-left:2px solid var(--text)}
+.act-icon svg{width:24px;height:24px}
+.act-badge{position:absolute;top:8px;right:8px;background:#007acc;color:#fff;
+  font-size:9px;width:14px;height:14px;border-radius:50%;display:flex;
+  align-items:center;justify-content:center;font-weight:600}
+.act-bottom{margin-top:auto}
+
+/* ── SIDEBAR ── */
+#sidebar{width:240px;min-width:120px;max-width:600px;background:var(--bg-sidebar);
+  display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;
+  position:relative;border-right:1px solid var(--border)}
+.sb-header{padding:0 12px;height:35px;display:flex;align-items:center;
+  font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text);flex-shrink:0}
+.sb-header .hdr-acts{margin-left:auto;display:flex;gap:4px}
+.sb-header .hdr-acts svg{width:15px;height:15px;color:var(--muted);cursor:pointer}
+.sb-header .hdr-acts svg:hover{color:var(--text)}
+.sb-panel{display:none;flex-direction:column;flex:1;overflow:hidden}
+.sb-panel.active{display:flex}
+
+/* Sidebar resize handle */
+#sb-resize{position:absolute;right:0;top:0;bottom:0;width:4px;cursor:col-resize;
+  z-index:20;transition:background .15s}
+#sb-resize:hover,#sb-resize.dragging{background:var(--border-focus)}
+
+/* Tree */
+.tree-sec-hdr{display:flex;align-items:center;padding:2px 0 2px 12px;
+  cursor:pointer;height:22px;font-size:11px;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--text)}
+.tree-item{display:flex;align-items:center;height:22px;cursor:pointer;
+  position:relative;color:var(--text);font-size:13px}
+.tree-item:hover{background:var(--bg-hover)}
+.tree-item.selected{background:var(--selected-item)}
+.file-icon{margin-right:6px;width:16px;height:16px;flex-shrink:0}
+.chevron-wrap{width:16px;height:16px;display:flex;align-items:center;
+  justify-content:center;flex-shrink:0}
+.item-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Search panel */
+.search-wrap{padding:8px;display:flex;flex-direction:column;gap:6px}
+.s-input-wrap{display:flex;align-items:center;background:var(--input-bg);
+  border:1px solid transparent;border-radius:3px;padding:0 8px;gap:6px}
+.s-input-wrap:focus-within{border-color:var(--border-focus)}
+.s-input-wrap input{flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-size:13px;font-family:var(--font-ui);padding:5px 0;
+  user-select:text}
+.s-input-wrap svg{width:13px;height:13px;color:var(--muted)}
+
+/* SCM */
+.scm-item{display:flex;align-items:center;gap:6px;height:22px;
+  padding:0 12px 0 20px;cursor:pointer;font-size:13px;color:var(--text)}
+.scm-item:hover{background:var(--bg-hover)}
+.scm-M{color:#e2c08d;font-size:11px;font-weight:700;margin-left:auto}
+.scm-U{color:#73c991;font-size:11px;font-weight:700;margin-left:auto}
+
+/* Extensions */
+.ext-item{display:flex;align-items:center;height:42px;padding:0 12px;
+  cursor:pointer;gap:10px}
+.ext-item:hover{background:var(--bg-hover)}
+.ext-ico{width:28px;height:28px;border-radius:4px;display:flex;
+  align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+
+/* ── EDITOR AREA ── */
+#editor-area{display:flex;flex-direction:column;flex:1;overflow:hidden;
+  background:var(--bg-editor);min-width:0}
+
+/* Tab bar */
+#tabbar{display:flex;align-items:flex-end;height:35px;background:var(--bg-tab);
+  border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;overflow-y:hidden}
+#tabbar::-webkit-scrollbar{height:3px}
+#tabbar::-webkit-scrollbar-thumb{background:var(--scroll)}
+.tab{display:flex;align-items:center;height:35px;padding:0 12px;
+  min-width:110px;max-width:200px;background:var(--bg-tab);
+  border-right:1px solid var(--border);cursor:pointer;flex-shrink:0;
+  font-size:13px;color:var(--muted);gap:8px;transition:background .1s;
+  position:relative}
+.tab:hover{background:var(--bg-hover);color:var(--text)}
+.tab.active{background:var(--bg-tab-active);color:var(--text);
+  border-top:1px solid var(--border-focus)}
+.tab-ico{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.tab-lbl{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+.tab-dot{width:8px;height:8px;border-radius:50%;background:var(--text);flex-shrink:0}
+.tab-close{width:16px;height:16px;border-radius:3px;display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;opacity:0;transition:opacity .1s,background .1s}
+.tab:hover .tab-close,.tab.active .tab-close{opacity:1}
+.tab .tab-close:hover{background:var(--title-hover)}
+.tab .tab-close svg{width:9px;height:9px}
+
+/* Breadcrumb + toolbar */
+#crumbs-toolbar{display:flex;align-items:center;height:28px;background:var(--bg-editor);
+  border-bottom:1px solid var(--border);flex-shrink:0;padding:0 8px;gap:4px}
+.crumb{display:flex;align-items:center;gap:4px;cursor:pointer;
+  font-size:12px;color:var(--muted);padding:0 4px}
+.crumb:hover{color:var(--text)}
+.sep{color:var(--dim);font-size:12px}
+.toolbar-right{margin-left:auto;display:flex;align-items:center;gap:4px}
+.run-btn{display:flex;align-items:center;gap:5px;padding:2px 10px;
+  background:#007acc;color:#fff;border:none;border-radius:3px;
+  font-size:12px;cursor:pointer;font-family:var(--font-ui);transition:background .1s}
+.run-btn:hover{background:#1a8ad4}
+.run-btn.running{background:#555;cursor:wait}
+.run-btn svg{width:12px;height:12px}
+.tb-btn{width:24px;height:24px;display:flex;align-items:center;justify-content:center;
+  border-radius:3px;cursor:pointer;color:var(--muted);transition:background .1s,color .1s}
+.tb-btn:hover{background:var(--bg-hover);color:var(--text)}
+.tb-btn svg{width:14px;height:14px}
+
+/* Editor wrapper */
+#editor-minimap{display:flex;flex:1;overflow:hidden;min-height:0}
+
+/* The actual code editor */
+#editor-scroll{display:flex;flex:1;overflow:hidden;position:relative;min-width:0}
+#gutter{width:54px;background:var(--bg-editor);overflow:hidden;flex-shrink:0;
+  padding-top:4px;font-family:var(--font-mono);font-size:var(--fs);
+  line-height:var(--lh);user-select:none;border-right:1px solid var(--gutter-border)}
+.ln{display:block;height:var(--lh);line-height:var(--lh);text-align:right;
+  padding-right:10px;color:var(--dim);font-size:12px}
+.ln.cur{color:var(--text)}
+.code-area{position:relative;flex:1;overflow:hidden;min-width:0}
+#code-ta{position:absolute;inset:0;width:100%;height:100%;background:transparent;
+  color:transparent;caret-color:#aeafad;font-family:var(--font-mono);
+  font-size:var(--fs);line-height:var(--lh);padding:4px 20px 200px 4px;
+  border:none;outline:none;resize:none;overflow:auto;white-space:pre;
+  overflow-wrap:normal;tab-size:2;-moz-tab-size:2;z-index:2;
+  user-select:text;-webkit-user-select:text}
+#code-ta::-webkit-scrollbar{width:10px;height:10px}
+#code-ta::-webkit-scrollbar-track{background:var(--bg-editor)}
+#code-ta::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:2px}
+#code-ta::-webkit-scrollbar-thumb:hover{background:var(--scroll-h)}
+#code-hi{position:absolute;inset:0;font-family:var(--font-mono);font-size:var(--fs);
+  line-height:var(--lh);padding:4px 20px 200px 4px;margin:0;white-space:pre;
+  tab-size:2;-moz-tab-size:2;overflow:hidden;pointer-events:none;z-index:1;
+  color:var(--text);word-break:normal}
+.active-line-bg{position:absolute;left:0;right:0;height:var(--lh);
+  background:var(--line-highlight);pointer-events:none;z-index:0}
+
+/* Minimap */
+#minimap{width:100px;background:var(--bg-editor);border-left:1px solid var(--minimap-border);
+  position:relative;overflow:hidden;flex-shrink:0}
+#minimap canvas{display:block}
+.mm-slider{position:absolute;left:0;right:0;background:var(--minimap-slider);
+  border-radius:2px;pointer-events:none;min-height:20px}
+
+/* ── RESIZE HANDLE (horizontal - panel height) ── */
+.h-resize{height:4px;background:transparent;cursor:ns-resize;flex-shrink:0;
+  transition:background .15s}
+.h-resize:hover,.h-resize.dragging{background:var(--border-focus)}
+
+/* ── PANEL ── */
+#panel{height:220px;min-height:60px;max-height:80vh;background:var(--bg-panel);
+  border-top:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+#panel-hdr{display:flex;align-items:center;background:var(--bg-panel-hdr);
+  height:35px;flex-shrink:0;border-bottom:1px solid var(--border);overflow-x:auto}
+#panel-hdr::-webkit-scrollbar{display:none}
+.ptab{height:35px;padding:0 14px;display:flex;align-items:center;
+  font-size:12px;cursor:pointer;color:var(--muted);
+  border-bottom:1px solid transparent;white-space:nowrap;transition:color .1s}
+.ptab:hover{color:var(--text)}
+.ptab.active{color:var(--text);border-bottom-color:var(--text)}
+.panel-acts{margin-left:auto;display:flex;align-items:center;
+  gap:2px;padding:0 8px;flex-shrink:0}
+.p-btn{width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+  border-radius:4px;cursor:pointer;color:var(--muted);transition:background .1s,color .1s}
+.p-btn:hover{background:var(--bg-hover);color:var(--text)}
+.p-btn svg{width:14px;height:14px}
+
+/* Terminal tabs strip */
+.term-tabs{display:flex;align-items:center;padding:0 8px;background:var(--bg-panel-hdr);
+  height:28px;border-bottom:1px solid var(--border);gap:2px;flex-shrink:0;overflow-x:auto}
+.term-tabs::-webkit-scrollbar{display:none}
+.t-tab{padding:2px 10px;border-radius:3px;font-size:12px;cursor:pointer;
+  color:var(--muted);display:flex;align-items:center;gap:6px;transition:background .1s}
+.t-tab:hover{background:var(--bg-hover);color:var(--text)}
+.t-tab.active{background:var(--bg-hover);color:var(--text)}
+.t-dot{width:6px;height:6px;border-radius:50%;background:#89d185}
+
+/* Terminal body */
+#term-body{flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+#term-output{flex:1;overflow-y:auto;padding:6px 14px 4px;
+  font-family:var(--font-mono);font-size:13px;line-height:var(--lh)}
+#term-output::-webkit-scrollbar{width:6px}
+#term-output::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:2px}
+.to{white-space:pre-wrap;word-break:break-word}
+.to.err{color:var(--red)}
+.to.suc{color:#89d185}
+.to.info{color:#4fc1ff}
+.to.dim{color:var(--muted)}
+.tp{color:#4ec9b0}.tpa{color:#569cd6}
+
+/* Terminal input line */
+#term-input-line{display:flex;align-items:center;padding:0 14px 6px;
+  font-family:var(--font-mono);font-size:13px;flex-shrink:0}
+#term-prompt{color:#4ec9b0;white-space:nowrap;flex-shrink:0}
+#term-sep{color:var(--text);margin:0 2px;flex-shrink:0}
+#term-in{flex:1;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:var(--font-mono);font-size:13px;
+  caret-color:#aeafad;user-select:text;-webkit-user-select:text}
+.term-cursor{display:inline-block;width:8px;height:14px;background:var(--text);
+  vertical-align:middle;animation:blink 1.1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ── STATUS BAR ── */
+#statusbar{height:22px;background:var(--bg-status);display:flex;
+  align-items:center;flex-shrink:0;font-size:12px;overflow:hidden}
+.si{display:flex;align-items:center;padding:0 8px;height:100%;
+  gap:5px;cursor:pointer;white-space:nowrap;color:var(--white);transition:background .1s}
+.si:hover{background:var(--status-hover)}
+.si svg{width:13px;height:13px}
+.si-right{margin-left:auto;display:flex}
+
+/* ── DROPDOWN MENUS ── */
+.dropdown{position:fixed;background:var(--menu-bg);border:1px solid var(--menu-border);
+  border-radius:4px;box-shadow:var(--menu-shadow);padding:4px 0;
+  font-size:13px;z-index:9999;min-width:220px;display:none}
+.dropdown.vis{display:block}
+.dd{padding:5px 20px;cursor:pointer;display:flex;justify-content:space-between;
+  align-items:center;color:var(--text);gap:30px}
+.dd:hover{background:var(--menu-hover)}
+.dd .sc{color:var(--dim);font-size:11px;white-space:nowrap}
+.dd-sep{border-top:1px solid var(--menu-border);margin:4px 0}
+
+/* ── CONTEXT MENU ── */
+.ctx{position:fixed;background:var(--menu-bg);border:1px solid var(--menu-border);
+  border-radius:4px;box-shadow:var(--menu-shadow);padding:4px 0;
+  font-size:13px;z-index:9999;min-width:200px;display:none}
+.ctx.vis{display:block}
+.ctx .ci{padding:5px 20px;cursor:pointer;display:flex;justify-content:space-between;
+  align-items:center;color:var(--text)}
+.ctx .ci:hover{background:var(--menu-hover)}
+.ctx .ci .sc{color:var(--dim);font-size:11px}
+.ctx-sep{border-top:1px solid var(--menu-border);margin:4px 0}
+
+/* Explorer Context Menu */
+.ctx#explorer-ctx {
+  min-width: 150px;
+}
+
+/* ── COMMAND PALETTE ── */
+#cmd-pal{display:none;position:fixed;top:50px;left:50%;transform:translateX(-50%);
+  width:min(600px,90vw);background:var(--menu-bg);border:1px solid var(--menu-border);
+  border-radius:6px;box-shadow:var(--cmd-shadow);z-index:10000;overflow:hidden}
+#cmd-pal.vis{display:block}
+#cmd-in{width:100%;padding:12px 16px;background:var(--input-bg);border:none;outline:none;
+  color:var(--text);font-size:14px;font-family:var(--font-ui);
+  border-bottom:1px solid var(--border-focus)}
+.cmd-results{max-height:300px;overflow-y:auto}
+.cmd-item{padding:8px 16px;cursor:pointer;display:flex;align-items:center;
+  gap:10px;color:var(--text);font-size:13px}
+.cmd-item:hover,.cmd-item.sel{background:var(--menu-hover)}
+.cmd-item .cdesc{color:var(--muted);font-size:11px;margin-left:auto}
+
+/* ── NOTIFICATIONS ── */
+#notif-area{position:fixed;bottom:30px;right:16px;display:flex;
+  flex-direction:column;gap:8px;z-index:8000;pointer-events:none}
+.notif{background:var(--menu-bg);border:1px solid var(--menu-border);border-radius:4px;
+  padding:10px 14px;font-size:13px;max-width:340px;
+  box-shadow:var(--notification-shadow);
+  animation:slideIn .2s ease;display:flex;align-items:flex-start;gap:10px;
+  pointer-events:all}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}}
+.notif svg{width:16px;height:16px;flex-shrink:0;margin-top:1px}
+.notif .nx{margin-left:auto;cursor:pointer;opacity:.7;flex-shrink:0}
+.notif .nx:hover{opacity:1}
+
+/* ── OVERLAY ── */
+#overlay{display:none;position:fixed;inset:0;z-index:8999}
+#overlay.vis{display:block}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  #sidebar{width:200px}
+  .title-center{display:none}
+  .mb-item:nth-child(n+6){display:none}
+  #minimap{display:none}
+}
+@media(max-width:500px){
+  #sidebar{display:none}
+  #sidebar.mobile-open{display:flex;position:absolute;z-index:50;height:100%;
+    box-shadow:var(--sidebar-shadow)}
+  #actbar{width:40px}
+  .act-icon{width:40px;height:40px}
+}
+
+/* Syntax highlight colors */
+.kw{color:var(--blue)}.str{color:var(--orange)}.cm{color:var(--green);font-style:italic}
+.prop{color:var(--lblue)}.fn{color:var(--yellow)}.type{color:var(--cyan)}
+.op{color:var(--text);opacity:.8}.bool{color:var(--blue)}.num{color:var(--num)}
+.dec{color:#c586c0}.df{color:var(--lblue)}.ver{color:var(--orange)}
+.inst{color:var(--blue)}.cmt{color:var(--green);font-style:italic}
+
+/* Loading overlay for Compilers */
+#py-loading{display:none;position:absolute;inset:0;background:var(--loader-backdrop);
+  z-index:100;align-items:center;justify-content:center;font-size:13px;color:var(--text)}
+#py-loading.vis{display:flex}
+.spinner{width:16px;height:16px;border:2px solid #555;border-top-color:#007acc;
+  border-radius:50%;animation:spin .7s linear infinite;margin-right:8px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.debug-launch-hint{background:var(--launch-bg);padding:5px 10px;border-radius:3px;
+  font-family:var(--font-mono);font-size:11px;margin:8px 0}
+</style>
+</head>
+<body>
+<div id="app">
+
+<div id="titlebar">
+  <svg class="vsc-logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <mask id="vm"><path fill="#fff" d="M70.9 4.4L37.2 36.6 15.4 19.8.5 30.9l22.8 19.1L.5 69.1l14.9 11.1 21.8-16.8 33.7 32.2 14.6-7V11.4z"/></mask>
+    <linearGradient id="vlg" x1="50" y1="4.4" x2="50" y2="95.6" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0065a9"/><stop offset="1" stop-color="#0065a9"/>
+    </linearGradient>
+    <path fill="url(#vlg)" d="M99.1 19.6L70.9 4.4 0 57.5V95.6l14.6 7 84.5-57.5z" mask="url(#vm)"/>
+    <path fill="#007acc" d="M70.9 4.4L0 42.5V95.6l14.6 7V50l56.3-38.1z" mask="url(#vm)"/>
+    <path fill="#1f9cf0" d="M70.9 4.4 0 57.5l14.6 11.5L70.9 31V4.4z" mask="url(#vm)"/>
+  </svg>
+  <div class="menubar">
+    <div class="mb-item" onclick="toggleMenu('file',this)">File</div>
+    <div class="mb-item" onclick="toggleMenu('edit',this)">Edit</div>
+    <div class="mb-item" onclick="toggleMenu('selection',this)">Selection</div>
+    <div class="mb-item" onclick="toggleMenu('view',this)">View</div>
+    <div class="mb-item" onclick="toggleMenu('go',this)">Go</div>
+    <div class="mb-item" onclick="toggleMenu('run',this)">Run</div>
+    <div class="mb-item" onclick="toggleMenu('terminal',this)">Terminal</div>
+    <div class="mb-item" onclick="toggleMenu('help',this)">Help</div>
+  </div>
+  <div class="title-center">Choco Pie Project — Visual Studio Code</div>
+  <button class="signin-btn" onclick="toast('Signing in to sync settings…')">Sign In</button>
+</div>
+
+<div id="main-body">
+
+<div id="actbar">
+  <div class="act-icon active" title="Explorer (Ctrl+Shift+E)" onclick="switchSB('explorer')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 0h-9L7 1.5v5H2L0 8v14.5L1.5 24h12l1.5-1.5v-5H19l1-1.5V6l-2.5-6zM16 6l-1-.9V1l3.4 5H16zm-3 15.5H2V8h5V1.5h6V6l1.5 1.5V21.5H13zm4-6.5H16V8.5l-1.5-1.5H8.5V8H17v7z"/></svg>
+  </div>
+  <div class="act-icon" title="Search (Ctrl+Shift+F)" onclick="switchSB('search')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.25 0a8.25 8.25 0 0 0-6.18 13.72L1 22.54 2.46 24l8.06-8.06A8.25 8.25 0 1 0 15.25.01V0zm0 15a6.75 6.75 0 1 1 0-13.5 6.75 6.75 0 0 1 0 13.5z"/></svg>
+  </div>
+  <div class="act-icon" title="Source Control (Ctrl+Shift+G)" onclick="switchSB('scm')">
+    <div class="act-badge">1</div>
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.007 8.222A3.738 3.738 0 0 0 15.045 5.2a3.737 3.737 0 0 0 1.156 6.583 2.987 2.987 0 0 1-2.668 1.67h-2.99a4.456 4.456 0 0 0-2.989 1.165V7.4a3.737 3.737 0 1 0-1.494 0v9.117a3.776 3.776 0 1 0 1.816.099 2.99 2.99 0 0 1 2.668-1.667h2.99a4.484 4.484 0 0 0 4.223-3.039 3.757 3.757 0 0 0 3.25-3.688zM4.565 3.738a2.242 2.242 0 1 1 4.484 0 2.242 2.242 0 0 1-4.484 0zm4.484 16.441a2.242 2.242 0 1 1-4.484 0 2.242 2.242 0 0 1 4.484 0zm8.221-9.715a2.242 2.242 0 1 1 0-4.484 2.242 2.242 0 0 1 0 4.484z"/></svg>
+  </div>
+  <div class="act-icon" title="Run and Debug (Ctrl+Shift+D)" onclick="switchSB('debug')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 11.9l-5.5 3.1v-6.2l5.5 3.1zM12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm0 22.5C6.2 22.5 1.5 17.8 1.5 12S6.2 1.5 12 1.5 22.5 6.2 22.5 12 17.8 22.5 12 22.5z"/></svg>
+  </div>
+  <div class="act-icon" title="Extensions (Ctrl+Shift+X)" onclick="switchSB('extensions')">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.1 7L17 .9l-1 1L17.5 3.5H13V2H11v1.5H6.5L8 2 7 .9.9 7 2 8l1.5-1.5V11H2v2h1.5v4.5L2 16l-1.1 1 6.2 6.1 1-1-1.5-1.5H11V22h2v-1.5h4.5l-1.5 1.5 1 1 6.1-6.1-1-1-1.5 1.5V13H22v-2h-1.5V6.5L22 8l1.1-1zm-8.1 9.5H9V7.5h6v9z"/></svg>
+  </div>
+  <div class="act-bottom">
+    <div class="act-icon" title="Accounts" onclick="toast('Accounts')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 6c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-2.21 0-4 1.79-4 4v6h8v-6c0-2.21-1.79-4-4-4z"/></svg>
+    </div>
+    <div class="act-icon" title="Manage" onclick="toast('Settings')">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.23-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49-.12-.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.23.09.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+    </div>
+  </div>
+</div>
+
+<div id="sidebar">
+
+  <div id="sb-explorer" class="sb-panel active">
+    <div class="sb-header">Explorer
+      <div class="hdr-acts">
+        <svg viewBox="0 0 16 16" fill="currentColor" title="New File" onclick="execExpHeader('new_file')"><path d="M9.5 1.1l3.4 3.5.1.4v2h-1V5H8V1H3v14h5v1H2.5l-.5-.5v-15l.5-.5h6.7l.3.1zM9 1.9V4h2.1L9 1.9zm4 13.6l-2.5-2.5-1 1.1-.5.4H7v-4.1l.4-.5 4.1-4.1 1-.4 1 .4 1.9 2 .5 1-.5 1L13.9 11l1.1 1.1.4 1-.4 1L14 15.5l-1 0zm.1-5.6l-1-1-2.6 2.6v1h1l2.6-2.6zm1.4.4l.5-.5-1-1-.5.5 1 1z"/></svg>
+        <svg viewBox="0 0 16 16" fill="currentColor" title="New Folder" onclick="execExpHeader('new_folder')"><path d="M14.5 2H7.7l-.6-.6H1.5l-.5.5v11l.5.5h13l.5-.5V2.5l-.5-.5zm-.5 11H2V6h12v7zm0-8H2V3h4.7l.6.6H14v1.4z"/></svg>
+        <svg viewBox="0 0 16 16" fill="currentColor" title="Refresh" onclick="toast('Refreshed')"><path d="M13.451 5.609l-.921-.877-1.719 1.802-.979-1.08-1.4 1.266 2.298 2.537zM8 14.5A6.5 6.5 0 1 1 14.5 8a6.508 6.508 0 0 1-6.5 6.5M8 2.5A5.5 5.5 0 1 0 13.5 8 5.506 5.506 0 0 0 8 2.5"/></svg>
+      </div>
+    </div>
+    <div id="tree-container" style="overflow-y:auto;flex:1;height:100%" oncontextmenu="showExpCtx(event, null)">
+      <div class="tree-sec-hdr" onclick="toast('Toggled Workspace')">▾ CHOCO PIE PROJECT</div>
+      <div id="tree-root"></div>
+    </div>
+  </div>
+
+  <div id="sb-search" class="sb-panel">
+    <div class="sb-header">Search</div>
+    <div class="search-wrap">
+      <div class="s-input-wrap">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.999 11.292 8.707 8a4.552 4.552 0 1 0-.707.707l3.292 3.293.707-.708zM2 6.5a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0z"/></svg>
+        <input type="text" placeholder="Search" style="user-select:text;-webkit-user-select:text"/>
+      </div>
+      <div class="s-input-wrap">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M0 1h16v1.5H0zM0 5.25h16v1.5H0zM8 9.5h8V11H8z"/></svg>
+        <input type="text" placeholder="Replace" style="user-select:text;-webkit-user-select:text"/>
+      </div>
+      <div style="font-size:12px;color:var(--muted);padding:4px 2px">No results found</div>
+    </div>
+  </div>
+
+  <div id="sb-scm" class="sb-panel">
+    <div class="sb-header">Source Control</div>
+    <div style="padding:8px">
+      <div class="s-input-wrap">
+        <input type="text" placeholder="Message (Ctrl+Enter to commit)" style="user-select:text;-webkit-user-select:text"/>
+      </div>
+    </div>
+    <div class="tree-sec-hdr">▾ Changes</div>
+    <div class="scm-item">Pie.py<span class="scm-U">U</span></div>
+  </div>
+
+  <div id="sb-debug" class="sb-panel">
+    <div class="sb-header">Run and Debug</div>
+    <div style="padding:20px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.8">
+      <div>To customize Run and Debug,</div>
+      <div class="debug-launch-hint">create a launch.json file</div>
+      <div>or press <strong>F5</strong> to run</div>
+      <button onclick="runCode()" style="margin-top:12px;padding:6px 16px;background:#007acc;color:#fff;border:none;border-radius:3px;cursor:pointer;font-size:12px">▶ Run File</button>
+    </div>
+  </div>
+
+  <div id="sb-extensions" class="sb-panel">
+    <div class="sb-header">Extensions</div>
+    <div class="search-wrap">
+      <div class="s-input-wrap">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.999 11.292 8.707 8a4.552 4.552 0 1 0-.707.707l3.292 3.293.707-.708zM2 6.5a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0z"/></svg>
+        <input type="text" placeholder="Search Extensions in Marketplace" style="user-select:text;-webkit-user-select:text"/>
+      </div>
+    </div>
+    <div class="tree-sec-hdr">▾ INSTALLED</div>
+    <div class="ext-item"><div class="ext-ico" style="background:#2496ed">🐋</div><div><div style="font-size:12px">Docker</div><div style="font-size:11px;color:var(--muted)">ms-azuretools • ★ 4.8</div></div></div>
+    <div class="ext-item"><div class="ext-ico" style="background:#3572A5">🐍</div><div><div style="font-size:12px">Python</div><div style="font-size:11px;color:var(--muted)">ms-python • ★ 4.9</div></div></div>
+    <div class="ext-item"><div class="ext-ico" style="background:#A8B9CC">C</div><div><div style="font-size:12px">C/C++</div><div style="font-size:11px;color:var(--muted)">ms-vscode • ★ 4.8</div></div></div>
+    <div class="ext-item"><div class="ext-ico" style="background:#e34c26">H</div><div><div style="font-size:12px">HTML CSS Support</div><div style="font-size:11px;color:var(--muted)">ecmel • ★ 4.6</div></div></div>
+  </div>
+
+  <div id="sb-resize"></div>
+</div>
+
+<div id="editor-area">
+
+  <div id="tabbar">
+    </div>
+
+  <div id="crumbs-toolbar">
+    <div class="crumb" id="crumb-root">
+      Choco Pie Project
+    </div>
+    <span class="sep">›</span>
+    <div class="crumb" id="crumb-file">
+      </div>
+    <div class="toolbar-right">
+      <div class="tb-btn" title="Format Document (Shift+Alt+F)" onclick="toast('Document formatted')">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v1.5H2V3zm0 4h8v1.5H2V7zm0 4h10v1.5H2V11z"/></svg>
+      </div>
+      <div class="tb-btn" title="Split Editor" onclick="toast('Split editor')">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 2v12h6V2H8zm5 11H9V3h4v10zM2 2v12h5V2H2zm4 11H3V3h3v10z"/></svg>
+      </div>
+      <button class="run-btn" id="run-btn" onclick="runCode()" title="Run File (F5)">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg>
+        Run
+      </button>
+    </div>
+  </div>
+
+  <div id="editor-minimap">
+    <div id="editor-scroll">
+      <div id="gutter"></div>
+      <div class="code-area" style="position:relative">
+        <div id="py-loading">
+          <div class="spinner"></div><span id="run-status-text">Running...</span>
+        </div>
+        <div id="active-line-bg" class="active-line-bg"></div>
+        <pre id="code-hi"></pre>
+        <textarea id="code-ta" spellcheck="false" autocomplete="off" autocorrect="off"
+          oninput="onEdit()" onscroll="syncScroll()" onclick="onEditorClick()"
+          onkeydown="onEditorKey(event)" onkeyup="onEditorClick()"
+          oncontextmenu="showCtx(event)"></textarea>
+      </div>
+    </div>
+    <div id="minimap">
+      <canvas id="mm-canvas" width="100" height="600"></canvas>
+      <div class="mm-slider" id="mm-slider" style="top:0;height:80px"></div>
+    </div>
+  </div>
+
+  <div class="h-resize" id="panel-resize" onmousedown="startPanelResize(event)"></div>
+
+  <div id="panel">
+    <div id="panel-hdr">
+      <div class="ptab" onclick="switchPTab(this,'problems')">PROBLEMS</div>
+      <div class="ptab" onclick="switchPTab(this,'output')">OUTPUT</div>
+      <div class="ptab" onclick="switchPTab(this,'debug-console')">DEBUG CONSOLE</div>
+      <div class="ptab active" onclick="switchPTab(this,'terminal')">TERMINAL</div>
+      <div class="ptab" onclick="switchPTab(this,'ports')">PORTS</div>
+      <div class="panel-acts">
+        <div class="p-btn" title="New Terminal" onclick="addTermLine('','')">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M14 1H2L1 2v12l1 1h12l1-1V2l-1-1zm0 13H2V3h12v11zM5.854 5.146 4.5 6.5l1.354 1.354-.708.707L3.086 6.5l2.06-2.061.708.707zm4.292 0 .708.707L8.5 6.5l2.354 2.354-.708.707L7.086 6.5l3.06-3.061v1.207zM6 10h4v1H6v-1z"/></svg>
+        </div>
+        <div class="p-btn" title="Clear Terminal" onclick="clearTerm()">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2.1 2.1l11.8 11.8-.7.7L1.4 2.8l.7-.7zm1.4 1.4L15 15H1V3.5l.5-.5H13l.5.5V5l-1-1H2v9h11l-1-1V4.5l2 2V15l-.5.5h-13L.5 15V2l.5-.5h2.5z"/></svg>
+        </div>
+        <div class="p-btn" title="Kill Terminal" onclick="toast('Terminal session ended')">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M7.116 8 1 1.884 1.884 1 8 7.116 14.116 1 15 1.884 8.884 8 15 14.116l-.884.884L8 8.884 1.884 15 1 14.116z"/></svg>
+        </div>
+        <div class="p-btn" title="Maximize Panel" onclick="toggleMaxPanel()">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M3 3h4v1H4v3H3V3zm9 0h1v4h-1V4h-3V3h3zM3 12v-3h1v3h3v1H3v-1zm10 0v1h-4v-1h3v-3h1v3z"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="term-tabs">
+      <div class="t-tab active"><div class="t-dot"></div>powershell</div>
+      <div class="t-tab" onclick="toast('Switched terminal')"><div class="t-dot" style="background:#f1502f"></div>bash</div>
+      <div class="p-btn" style="width:22px;height:22px;margin-left:4px" onclick="toast('New terminal')">
+        <svg viewBox="0 0 16 16" fill="currentColor" width="12" height="12"><path d="M8 4h1v3h3v1H9v3H8V8H5V7h3z"/></svg>
+      </div>
+    </div>
+    <div id="term-body">
+      <div id="term-output"></div>
+      <div id="term-input-line">
+        <span id="term-prompt">PS C:\Users\Mayur\Desktop\Choco Pie Project</span>
+        <span id="term-sep">&gt;&nbsp;</span>
+        <input type="text" id="term-in" autocomplete="off" spellcheck="false"
+          onkeydown="termKey(event)" placeholder=""/>
+      </div>
+    </div>
+  </div>
+
+</div></div><div id="statusbar">
+  <div class="si" onclick="toast('Git: main branch')">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M5 2.5a2.5 2.5 0 1 0 5 0 2.5 2.5 0 0 0-5 0zm4 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zm-8 5a2.5 2.5 0 1 0 5 0 2.5 2.5 0 0 0-5 0zM3 8a1.5 1.5 0 1 1 0-3A1.5 1.5 0 0 1 3 8zm8.5 5a2.5 2.5 0 1 0 5 0 2.5 2.5 0 0 0-5 0zM14 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0zM3 9.5v.5H2V9.5A3.5 3.5 0 0 1 5.5 6H7v1H5.5A2.5 2.5 0 0 0 3 9.5zm8-1h-1.5A2.5 2.5 0 0 0 7 11v2.5H6V11a3.5 3.5 0 0 1 3.5-3.5H11v1z"/></svg>
+    main
+  </div>
+  <div class="si" onclick="toast('No errors')">⊘ 0 &nbsp;⚠ 0</div>
+  <div class="si" onclick="toast('Syncing…')">↓0 ↑0</div>
+  <div class="si-right">
+    <div class="si" id="lang-si" onclick="toast('Select language mode')">Plain Text</div>
+    <div class="si" onclick="toast('Select indentation')">Spaces: 4</div>
+    <div class="si" onclick="toast('Select encoding')">UTF-8</div>
+    <div class="si" onclick="toast('Select line ending')">CRLF</div>
+    <div class="si" id="cur-pos" onclick="openCmdPal()">Ln 1, Col 1</div>
+    <div class="si" onclick="toast('Prettier active')">✓ Prettier</div>
+  </div>
+</div>
+</div><div class="ctx" id="ctx">
+  <div class="ci" onclick="closeAll();document.execCommand('copy')">Copy <span class="sc">Ctrl+C</span></div>
+  <div class="ci" onclick="closeAll();document.execCommand('cut')">Cut <span class="sc">Ctrl+X</span></div>
+  <div class="ci" onclick="closeAll();document.execCommand('paste')">Paste <span class="sc">Ctrl+V</span></div>
+  <div class="ctx-sep"></div>
+  <div class="ci" onclick="closeAll();toast('Format Document')">Format Document <span class="sc">Shift+Alt+F</span></div>
+  <div class="ci" onclick="closeAll();runCode()">Run File <span class="sc">F5</span></div>
+  <div class="ctx-sep"></div>
+  <div class="ci" onclick="closeAll();openCmdPal()">Command Palette… <span class="sc">Ctrl+Shift+P</span></div>
+</div>
+
+<div class="ctx" id="explorer-ctx">
+  <div class="ci" onclick="execExpCmd('new_file')">New File</div>
+  <div class="ci" onclick="execExpCmd('new_folder')">New Folder</div>
+  <div class="ctx-sep"></div>
+  <div class="ci" onclick="execExpCmd('rename')">Rename</div>
+  <div class="ci" onclick="execExpCmd('delete')">Delete</div>
+</div>
+
+<div id="cmd-pal">
+  <input id="cmd-in" type="text" placeholder="> type a command or file name"
+    oninput="filterCmds(this.value)" onkeydown="cmdKey(event)"/>
+  <div class="cmd-results" id="cmd-results"></div>
+</div>
+
+<div class="dropdown" id="menu-file">
+  <div class="dd" onclick="closeAll();toast('New File')">New Text File <span class="sc">Ctrl+N</span></div>
+  <div class="dd" onclick="closeAll()">New Window <span class="sc">Ctrl+Shift+N</span></div>
+  <div class="dd-sep"></div>
+  <div class="dd" onclick="closeAll()">Open File… <span class="sc">Ctrl+O</span></div>
+  <div class="dd" onclick="closeAll()">Open Folder… <span class="sc">Ctrl+K Ctrl+O</span></div>
+  <div class="dd-sep"></div>
+  <div class="dd" onclick="closeAll();saveFile()">Save <span class="sc">Ctrl+S</span></div>
+  <div class="dd" onclick="closeAll()">Save As… <span class="sc">Ctrl+Shift+S</span></div>
+  <div class="dd-sep"></div>
+  <div class="dd" onclick="closeAll()">Close Editor <span class="sc">Ctrl+W</span></div>
+</div>
+<div class="dropdown" id="menu-edit">
+  <div class="dd" onclick="closeAll();document.execCommand('undo')">Undo <span class="sc">Ctrl+Z</span></div>
+  <div class="dd" onclick="closeAll();document.execCommand('redo')">Redo <span class="sc">Ctrl+Y</span></div>
+  <div class="dd-sep"></div>
+  <div class="dd" onclick="closeAll();document.execCommand('cut')">Cut <span class="sc">Ctrl+X</span></div>
+  <div class="dd" onclick="closeAll();document.execCommand('copy')">Copy <span class="sc">Ctrl+C</span></div>
+  <div class="dd-sep"></div>
+  <div class="dd" onclick="closeAll();switchSB('search')">Find <span class="sc">Ctrl+F</span></div>
+</div>
+<div class="dropdown" id="menu-view">
+  <div class="dd" onclick="closeAll();openCmdPal()">Command Palette… <span class="sc">Ctrl+Shift+P</span></div>
+  <div class="dd-sep"></div>
+  <div class="dd" onclick="closeAll();switchSB('explorer')">Explorer <span class="sc">Ctrl+Shift+E</span></div>
+  <div class="dd" onclick="closeAll();switchSB('search')">Search <span class="sc">Ctrl+Shift+F</span></div>
+  <div class="dd" onclick="closeAll();switchSB('scm')">Source Control <span class="sc">Ctrl+Shift+G</span></div>
+  <div class="dd" onclick="closeAll();switchSB('extensions')">Extensions <span class="sc">Ctrl+Shift+X</span></div>
+  <div class="dd-sep"></div>
+  <div class="dd" onclick="closeAll();toggleSidebar()">Toggle Sidebar <span class="sc">Ctrl+B</span></div>
+</div>
+<div class="dropdown" id="menu-run">
+  <div class="dd" onclick="closeAll();runCode()">Start Debugging <span class="sc">F5</span></div>
+  <div class="dd" onclick="closeAll();runCode()">Run Without Debugging <span class="sc">Ctrl+F5</span></div>
+  <div class="dd-sep"></div>
+  <div class="dd" onclick="closeAll()">Add Configuration…</div>
+</div>
+<div class="dropdown" id="menu-terminal">
+  <div class="dd" onclick="closeAll();focusTerm()">New Terminal <span class="sc">Ctrl+`</span></div>
+  <div class="dd" onclick="closeAll()">Split Terminal</div>
+  <div class="dd-sep"></div>
+  <div class="dd" onclick="closeAll();runCode()">Run Active File</div>
+</div>
+<div class="dropdown" id="menu-selection">
+  <div class="dd" onclick="closeAll()">Select All <span class="sc">Ctrl+A</span></div>
+  <div class="dd" onclick="closeAll()">Expand Selection <span class="sc">Shift+Alt+→</span></div>
+</div>
+<div class="dropdown" id="menu-go">
+  <div class="dd" onclick="closeAll()">Go to File… <span class="sc">Ctrl+P</span></div>
+  <div class="dd" onclick="closeAll()">Go to Line… <span class="sc">Ctrl+G</span></div>
+  <div class="dd-sep"></div>
+  <div class="dd" onclick="closeAll()">Go to Definition <span class="sc">F12</span></div>
+</div>
+<div class="dropdown" id="menu-help">
+  <div class="dd" onclick="closeAll()">Welcome</div>
+  <div class="dd" onclick="closeAll();openCmdPal()">Show All Commands <span class="sc">Ctrl+Shift+P</span></div>
+  <div class="dd-sep"></div>
+  <div class="dd" onclick="closeAll()">About</div>
+</div>
+
+<div id="overlay" onclick="closeAll()"></div>
+
+<div id="notif-area"></div>
+
+<script>
+const VSCODE_LITE_THEME_EVENT = "vscode-lite-theme";
+const VALID_THEMES = new Set(["light", "dark"]);
+
+function applyTheme(theme) {
+  const nextTheme = VALID_THEMES.has(theme) ? theme : "light";
+  document.documentElement.setAttribute("data-theme", nextTheme);
+  document.documentElement.style.colorScheme = nextTheme;
+
+  try {
+    window.localStorage.setItem("desktop-theme", nextTheme);
+    window.localStorage.setItem("pi-site-theme", nextTheme);
+  } catch (error) {
+    // Ignore storage errors in restricted contexts.
+  }
+}
+
+window.addEventListener("message", (event) => {
+  if (event.origin !== window.location.origin) return;
+
+  const data = event.data;
+  if (!data || data.type !== VSCODE_LITE_THEME_EVENT || !VALID_THEMES.has(data.theme)) {
+    return;
+  }
+
+  applyTheme(data.theme);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SVGs & UI ICONS
+// ─────────────────────────────────────────────────────────────────────────────
+const ICONS = {
+  folder: `<svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" class="icon-folder"><path d="M14.5 3H7.71l-.85-.85L6.51 2h-5l-.5.5v11l.5.5h13l.5-.5v-10z"/></svg>`,
+  py: `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="icon-py"><path d="M10.07 1C7.3 1 5.5 2.13 5.5 3.84V6h5v.5H4.24C2.8 6.5 1.5 7.44 1.5 9.93c0 2.1 1.17 3.57 2.93 3.57H5.5v-2.16c0-1.64 1.5-2.84 3.07-2.84H13.5c1.47 0 2.5-.97 2.5-2.5V3.84C16 2.13 13.8 1 10.07 1zm-1.5 2.5a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>`,
+  txt: `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="icon-txt"><path d="M3 5h10v1H3V5zm0 3h10v1H3V8zm0 3h7v1H3v-1z"/></svg>`,
+  yml: `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="icon-yml"><path d="M6 2v1H2v11h12V3h-4V2H6zm0 1h4v1H6V3zM3 5h10v8H3V5z"/></svg>`,
+  docker: `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="icon-docker"><circle cx="8" cy="8" r="6"/></svg>`,
+  html: `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="icon-html"><path d="M2.5 1L1 15h14l-1.5-14zM11 11H5v-2h6zm1-4H4V5h8z"/></svg>`,
+  css: `<svg width="16" height="16" viewBox="0 0 16 16" fill="#264de4"><path d="M2 2h12v12H2z"/><text x="2" y="11" fill="white" font-size="7" font-family="monospace">CSS</text></svg>`,
+  js: `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="icon-js"><path d="M2 2v12h12V2zm5.5 9.5c0 1.5-1 2.5-2.5 2.5S3 13 3 13l1-1s1 .5 1.5.5.5-.5.5-.5v-4h1.5zM13 13c-.5.5-1.5 1-2.5 1s-2-.5-2-.5l1-1s1 .5 1.5.5.5-.5.5-1c0-1.5-3-1.5-3-3s1-2.5 2.5-2.5c1 0 1.5.5 1.5.5l-.5 1s-.5-.5-1-.5c-.5 0-1 0-1 .5 0 1 3 1.5 3 3 0 1-.5 2-1 2.5z"/></svg>`,
+  cpp: `<svg width="16" height="16" viewBox="0 0 16 16" fill="#00599C"><path d="M2 2h12v12H2z"/><text x="2" y="11" fill="white" font-size="7" font-family="monospace">C++</text></svg>`,
+  c: `<svg width="16" height="16" viewBox="0 0 16 16" fill="#A8B9CC"><path d="M2 2h12v12H2z"/><text x="4.5" y="11" fill="black" font-size="8" font-family="monospace">C</text></svg>`,
+  java: `<svg width="16" height="16" viewBox="0 0 16 16" fill="#f8981d"><path d="M12.5 10c0 1.5-1 3-5 3s-5-1.5-5-3V7c0-1.5 1-3 5-3s5 1.5 5 3v3zm1-3v3c0 2-1.5 3-3.5 3S6.5 12 6.5 10V7C6.5 5 8 4 10 4s3.5 1 3.5 3z"/></svg>`,
+  default: `<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="icon-txt"><path d="M3 5h10v1H3V5zm0 3h10v1H3V8zm0 3h7v1H3v-1z"/></svg>`
+};
+
+function getFileIcon(name) {
+  if(!name) return ICONS.default;
+  const lower = name.toLowerCase();
+  if(lower.endsWith('.py')) return ICONS.py;
+  if(lower.endsWith('.yml') || lower.endsWith('.yaml')) return ICONS.yml;
+  if(lower.endsWith('.js')) return ICONS.js;
+  if(lower.endsWith('.html') || lower.endsWith('.htm')) return ICONS.html;
+  if(lower.endsWith('.css')) return ICONS.css;
+  if(lower.endsWith('.cpp') || lower.endsWith('.cxx')) return ICONS.cpp;
+  if(lower.endsWith('.c') || lower.endsWith('.h')) return ICONS.c;
+  if(lower.endsWith('.java')) return ICONS.java;
+  if(lower === 'dockerfile') return ICONS.docker;
+  return ICONS.default;
+}
+
+const TAB_LANG_LABEL = {
+  'python': 'Python', 'yaml': 'YAML', 'docker': 'Dockerfile',
+  'javascript': 'JavaScript', 'html': 'HTML', 'css': 'CSS',
+  'cpp': 'C++', 'c': 'C', 'java': 'Java', 'plain': 'Plain Text'
+};
+
+function getLang(filename) {
+  if(!filename) return 'plain';
+  const f = filename.toLowerCase();
+  if (f.endsWith('.py')) return 'python';
+  if (f.endsWith('.js')) return 'javascript';
+  if (f.endsWith('.html') || f.endsWith('.htm')) return 'html';
+  if (f.endsWith('.css')) return 'css';
+  if (f.endsWith('.cpp') || f.endsWith('.cxx')) return 'cpp';
+  if (f.endsWith('.c') || f.endsWith('.h')) return 'c';
+  if (f.endsWith('.java')) return 'java';
+  if (f.endsWith('.yml') || f.endsWith('.yaml')) return 'yaml';
+  if (f === 'dockerfile') return 'docker';
+  return 'plain';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FILE SYSTEM STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let fileNodes = {
+  'root': { id: 'root', type: 'folder', name: 'Choco Pie Project', children: ['node_1'], isOpen: true },
+  'node_1': { id: 'node_1', type: 'file', name: 'Pie.py', parent: 'root', isModified: false }
+};
+let FILE_CONTENTS = { 'node_1': '' };
+
+let openTabs = ['node_1'];
+let currentTab = 'node_1';
+let ctxNodeId = null;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FILE EXPLORER LOGIC
+// ─────────────────────────────────────────────────────────────────────────────
+function renderTree() {
+  const rootEl = document.getElementById('tree-root');
+  if(!rootEl) return;
+  rootEl.innerHTML = '';
+  
+  function buildLevel(parentId, depth) {
+    const parent = fileNodes[parentId];
+    if(!parent || !parent.children) return;
+    
+    parent.children.forEach(childId => {
+      const node = fileNodes[childId];
+      if(!node) return;
+      const div = document.createElement('div');
+      div.className = 'tree-item' + (currentTab === childId ? ' selected' : '');
+      div.style.paddingLeft = (depth * 12) + 'px';
+      
+      div.onclick = (e) => {
+        e.stopPropagation();
+        if(node.type === 'folder') {
+          node.isOpen = !node.isOpen;
+          renderTree();
+        } else {
+          openFile(childId);
+        }
+      };
+      
+      div.oncontextmenu = (e) => {
+        e.stopPropagation();
+        showExpCtx(e, childId);
+      };
+
+      const iconSvg = node.type === 'folder' ? ICONS.folder : getFileIcon(node.name);
+      div.innerHTML = `<span class="chevron-wrap">${iconSvg}</span><span class="item-label">${escHtml(node.name)}</span>`;
+      rootEl.appendChild(div);
+
+      if (node.type === 'folder' && node.isOpen) {
+        buildLevel(childId, depth + 1);
+      }
+    });
+  }
+  buildLevel('root', 1);
+}
+
+function showExpCtx(e, id) {
+  closeAll();
+  e.preventDefault();
+  ctxNodeId = id; 
+  const ctx = document.getElementById('explorer-ctx');
+  ctx.style.top = Math.min(e.clientY, window.innerHeight - 200) + 'px';
+  ctx.style.left = Math.min(e.clientX, window.innerWidth - 200) + 'px';
+  ctx.classList.add('vis');
+  document.getElementById('overlay').classList.add('vis');
+}
+
+function execExpHeader(cmd) {
+  ctxNodeId = currentTab || 'root'; 
+  execExpCmd(cmd);
+}
+
+function execExpCmd(cmd) {
+  closeAll();
+  let parentId = 'root';
+  if (ctxNodeId && ctxNodeId !== 'root') {
+    const node = fileNodes[ctxNodeId];
+    parentId = node.type === 'folder' ? ctxNodeId : node.parent;
+  }
+
+  if (cmd === 'new_file') {
+    const name = prompt('Enter new file name (e.g. script.cpp, style.css, App.java):');
+    if (name) createNode(parentId, 'file', name);
+  } else if (cmd === 'new_folder') {
+    const name = prompt('Enter new folder name:');
+    if (name) createNode(parentId, 'folder', name);
+  } else if (cmd === 'rename') {
+    if (!ctxNodeId || ctxNodeId === 'root') return;
+    const node = fileNodes[ctxNodeId];
+    const name = prompt('Enter new name:', node.name);
+    if (name && name !== node.name) {
+      node.name = name;
+      renderTree();
+      renderTabs();
+      if(currentTab === ctxNodeId) updateBreadcrumb();
+    }
+  } else if (cmd === 'delete') {
+    if (!ctxNodeId || ctxNodeId === 'root') return;
+    if (confirm(`Are you sure you want to delete '${fileNodes[ctxNodeId].name}'?`)) {
+      deleteNode(ctxNodeId);
+    }
+  }
+}
+
+function createNode(parentId, type, name) {
+  const id = 'node_' + Date.now();
+  fileNodes[id] = { id, type, name, parent: parentId, children: type === 'folder' ? [] : undefined, isModified: false };
+  if (type === 'file') FILE_CONTENTS[id] = '';
+  if (fileNodes[parentId] && fileNodes[parentId].children) {
+    fileNodes[parentId].children.push(id);
+    fileNodes[parentId].isOpen = true; 
+  }
+  renderTree();
+  if (type === 'file') openFile(id);
+}
+
+function deleteNode(id) {
+  const node = fileNodes[id];
+  const parent = fileNodes[node.parent];
+  if(parent) parent.children = parent.children.filter(cid => cid !== id);
+  
+  function removeRecursive(nid) {
+    const n = fileNodes[nid];
+    if (n && n.type === 'folder') n.children.forEach(removeRecursive);
+    delete fileNodes[nid];
+    delete FILE_CONTENTS[nid];
+    const tIdx = openTabs.indexOf(nid);
+    if (tIdx > -1) {
+      openTabs.splice(tIdx, 1);
+      if (currentTab === nid) currentTab = openTabs.length > 0 ? openTabs[openTabs.length - 1] : null;
+    }
+  }
+  removeRecursive(id);
+  
+  renderTree();
+  renderTabs();
+  if (currentTab) switchTab(currentTab);
+  else clearEditor();
+}
+
+function clearEditor() {
+  const ta = getTA();
+  if(ta) ta.value = '';
+  document.getElementById('code-hi').innerHTML = '';
+  document.getElementById('gutter').innerHTML = '';
+  document.getElementById('crumb-file').innerHTML = '';
+  document.getElementById('lang-si').textContent = 'Plain Text';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TABS & EDITOR STATE
+// ─────────────────────────────────────────────────────────────────────────────
+function renderTabs() {
+  const tb = document.getElementById('tabbar');
+  if(!tb) return;
+  tb.innerHTML = '';
+  openTabs.forEach(id => {
+    const node = fileNodes[id];
+    if (!node) return;
+    const div = document.createElement('div');
+    div.className = 'tab' + (currentTab === id ? ' active' : '');
+    div.id = 'tab-' + id;
+    div.onclick = () => switchTab(id);
+    
+    let html = `<span class="tab-ico">${getFileIcon(node.name)}</span><span class="tab-lbl">${escHtml(node.name)}</span>`;
+    if (node.isModified) html += `<div class="tab-dot"></div>`;
+    html += `<div class="tab-close" onclick="closeTab(event, '${id}')"><svg viewBox="0 0 10 10" fill="currentColor"><path d="M6.4 5l3.3-3.3-.7-.7L5.7 4.3 2.4 1l-.7.7L5 5l-3.3 3.3.7.7 3.3-3.3 3.3 3.3.7-.7z"/></svg></div>`;
+    
+    div.innerHTML = html;
+    tb.appendChild(div);
+  });
+}
+
+function updateBreadcrumb() {
+  const crumbFile = document.getElementById('crumb-file');
+  const rootCrumb = document.getElementById('crumb-root');
+  if (rootCrumb) rootCrumb.innerHTML = `${ICONS.folder} Choco Pie Project`;
+  
+  if(!currentTab || !crumbFile) { if(crumbFile) crumbFile.innerHTML = ''; return; }
+  const node = fileNodes[currentTab];
+  crumbFile.innerHTML = `${getFileIcon(node.name)} ${escHtml(node.name)}`;
+}
+
+function switchTab(id) {
+  currentTab = id;
+  renderTabs();
+  renderTree();
+  
+  const node = fileNodes[id];
+  if(!node) { clearEditor(); return; }
+  
+  getTA().value = FILE_CONTENTS[id] || '';
+  updateBreadcrumb();
+  document.getElementById('lang-si').textContent = TAB_LANG_LABEL[getLang(node.name)] || 'Plain Text';
+  
+  updateHighlight();
+  drawMinimap();
+  syncScroll();
+}
+
+function openFile(id) {
+  if (!openTabs.includes(id)) openTabs.push(id);
+  switchTab(id);
+}
+
+function closeTab(e, id) {
+  e.stopPropagation();
+  const idx = openTabs.indexOf(id);
+  if (idx > -1) openTabs.splice(idx, 1);
+  
+  if (currentTab === id) currentTab = openTabs.length > 0 ? openTabs[openTabs.length - 1] : null;
+  
+  if (currentTab) switchTab(currentTab);
+  else {
+    renderTabs();
+    renderTree();
+    clearEditor();
+  }
+}
+
+function saveFile() {
+  if(!currentTab) return;
+  FILE_CONTENTS[currentTab] = getTA().value;
+  fileNodes[currentTab].isModified = false;
+  renderTabs();
+  toast(`Saved: ${fileNodes[currentTab].name}`);
+}
+
+function onEdit() {
+  if(!currentTab) return;
+  FILE_CONTENTS[currentTab] = getTA().value;
+  fileNodes[currentTab].isModified = true;
+  updateHighlight();
+  drawMinimap();
+  
+  const tabEl = document.getElementById('tab-' + currentTab);
+  if (tabEl && !tabEl.querySelector('.tab-dot')) {
+    const close = tabEl.querySelector('.tab-close');
+    const dot = document.createElement('div');
+    dot.className = 'tab-dot';
+    tabEl.insertBefore(dot, close);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SYNTAX HIGHLIGHTERS
+// ─────────────────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function hlPython(code) {
+  const lines = code.split('\n');
+  return lines.map(line => {
+    let s = escHtml(line);
+    s = s.replace(/(#.*)$/, '<span class="cm">$1</span>');
+    if (s.includes('<span class="cm">')) return s;
+    s = s.replace(/(&quot;&quot;&quot;.*?&quot;&quot;&quot;|&#x27;&#x27;&#x27;.*?&#x27;&#x27;&#x27;)/g, '<span class="str">$1</span>');
+    s = s.replace(/(&quot;[^&]*?&quot;|&#x27;[^&#]*?&#x27;)/g, '<span class="str">$1</span>');
+
+    const kws = ['def','class','import','from','return','if','elif','else','for','while',
+      'try','except','finally','with','as','in','not','and','or','is','None','True','False',
+      'pass','break','continue','raise','yield','lambda','global','nonlocal','del','assert','async','await'];
+    const kwRegex = new RegExp(`(<[^>]+>)|\\b(${kws.join('|')})\\b`, 'g');
+    s = s.replace(kwRegex, (m, tag, kw) => tag ? tag : `<span class="kw">${kw}</span>`);
+
+    s = s.replace(/(<[^>]+>)|(@\w+)/g, (m, tag, dec) => tag ? tag : `<span class="dec">${dec}</span>`);
+
+    const bfns = ['print','len','range','input','int','float','str','list','dict','set',
+      'tuple','type','isinstance','hasattr','getattr','setattr','open','enumerate','zip',
+      'map','filter','sorted','reversed','sum','min','max','abs','round'];
+    const bfnRegex = new RegExp(`(<[^>]+>)|\\b(${bfns.join('|')})(?=\\s*\\()`, 'g');
+    s = s.replace(bfnRegex, (m, tag, fn) => tag ? tag : `<span class="fn">${fn}</span>`);
+
+    s = s.replace(/(<[^>]+>)|\b(\d+\.?\d*)\b/g, (m, tag, num) => tag ? tag : `<span class="num">${num}</span>`);
+    s = s.replace(/(<span class="kw">def<\/span>)\s+(\w+)/g, '$1 <span class="fn">$2</span>');
+    s = s.replace(/(<span class="kw">class<\/span>)\s+(\w+)/g, '$1 <span class="type">$2</span>');
+    return s;
+  }).join('\n');
+}
+
+function hlC(code) {
+  const lines = code.split('\n');
+  return lines.map(line => {
+    let s = escHtml(line);
+    s = s.replace(/(\/\/.*)$/, '<span class="cm">$1</span>');
+    if (s.includes('<span class="cm">')) return s;
+    s = s.replace(/(&quot;[^&]*?&quot;)/g, '<span class="str">$1</span>');
+    s = s.replace(/(&lt;.*?&gt;)/g, '<span class="str">$1</span>');
+
+    const kws = ['#include', 'int','return','if','else','while','for','void','char','double','float','using','namespace','std','struct','class','public','private'];
+    const kwRegex = new RegExp(`(<[^>]+>)|\\b(${kws.join('|').replace('#', '\\#')})\\b`, 'g');
+    s = s.replace(kwRegex, (m, tag, kw) => tag ? tag : `<span class="kw">${kw}</span>`);
+
+    const bfns = ['printf','scanf','cout','cin','endl','malloc','free'];
+    const bfnRegex = new RegExp(`(<[^>]+>)|\\b(${bfns.join('|')})\\b`, 'g');
+    s = s.replace(bfnRegex, (m, tag, fn) => tag ? tag : `<span class="fn">${fn}</span>`);
+    
+    s = s.replace(/(<[^>]+>)|\b(\d+\.?\d*)\b/g, (m, tag, num) => tag ? tag : `<span class="num">${num}</span>`);
+    return s;
+  }).join('\n');
+}
+
+function hlJava(code) {
+  const lines = code.split('\n');
+  return lines.map(line => {
+    let s = escHtml(line);
+    s = s.replace(/(\/\/.*)$/, '<span class="cm">$1</span>');
+    if (s.includes('<span class="cm">')) return s;
+    s = s.replace(/(&quot;[^&]*?&quot;)/g, '<span class="str">$1</span>');
+
+    const kws = ['public','private','protected','class','static','void','new','if','else','while','for','return','import','package'];
+    const kwRegex = new RegExp(`(<[^>]+>)|\\b(${kws.join('|')})\\b`, 'g');
+    s = s.replace(kwRegex, (m, tag, kw) => tag ? tag : `<span class="kw">${kw}</span>`);
+
+    const types = ['String','int','boolean','double','float','char','System','out'];
+    const tRegex = new RegExp(`(<[^>]+>)|\\b(${types.join('|')})\\b`, 'g');
+    s = s.replace(tRegex, (m, tag, t) => tag ? tag : `<span class="type">${t}</span>`);
+
+    s = s.replace(/(<[^>]+>)|\b(\d+\.?\d*)\b/g, (m, tag, num) => tag ? tag : `<span class="num">${num}</span>`);
+    return s;
+  }).join('\n');
+}
+
+function hlHTML(code) {
+  let s = escHtml(code);
+  s = s.replace(/(&lt;\/?)([a-zA-Z0-9-]+)(.*?)(&gt;)/g, (m, o, tag, attr, c) => {
+    let a = attr.replace(/([a-zA-Z-]+)=(&quot;.*?&quot;|&#x27;.*?&#x27;)/g, '<span class="prop">$1</span>=<span class="str">$2</span>');
+    return `${o}<span class="kw">${tag}</span>${a}${c}`;
+  });
+  return s;
+}
+
+function hlCSS(code) {
+  let s = escHtml(code);
+  s = s.replace(/([\.#a-zA-Z0-9_-]+)\s*\{/g, '<span class="kw">$1</span> {');
+  s = s.replace(/([a-zA-Z-]+)\s*:/g, '<span class="prop">$1</span>:');
+  s = s.replace(/:\s*([^;]+);/g, ': <span class="str">$1</span>;');
+  return s;
+}
+
+function hlYAML(code) {
+  const lines = code.split('\n');
+  return lines.map(line => {
+    let s = escHtml(line);
+    s = s.replace(/(#.*)$/, '<span class="cm">$1</span>');
+    if (s.includes('<span class="cm">')) return s;
+    s = s.replace(/^(\s*)([\w-]+)(\s*:)/g, '$1<span class="prop">$2</span>$3');
+    s = s.replace(/\b(true|false|yes|no|null)\b/g, '<span class="bool">$1</span>');
+    s = s.replace(/:\s*(\d+\.?\d*)(\s*$)/g, ': <span class="num">$1</span>$2');
+    s = s.replace(/:\s*([^<\n]+)$/g, (m, v) => {
+      if (v.trim().startsWith('<span')) return m;
+      return ': <span class="str">' + v + '</span>';
+    });
+    return s;
+  }).join('\n');
+}
+
+function hlPlain(code) { return escHtml(code); }
+
+function highlight(code, lang) {
+  if (lang === 'python') return hlPython(code);
+  if (lang === 'c' || lang === 'cpp') return hlC(code);
+  if (lang === 'java') return hlJava(code);
+  if (lang === 'html') return hlHTML(code);
+  if (lang === 'css') return hlCSS(code);
+  if (lang === 'yaml') return hlYAML(code);
+  return hlPlain(code);
+}
+
+function getTA()  { return document.getElementById('code-ta'); }
+function getHI()  { return document.getElementById('code-hi'); }
+function getGutter() { return document.getElementById('gutter'); }
+
+function updateHighlight() {
+  if(!currentTab) return;
+  const node = fileNodes[currentTab];
+  const ta = getTA();
+  const hi = getHI();
+  const lang = getLang(node.name);
+  const code = ta.value;
+  hi.innerHTML = highlight(code, lang);
+  updateGutter(code.split('\n').length);
+}
+
+function updateGutter(count) {
+  const g = getGutter();
+  const ta = getTA();
+  const pos = ta.selectionStart;
+  const before = ta.value.substring(0, pos);
+  const curLine = before.split('\n').length;
+
+  let html = '';
+  for (let i = 1; i <= count; i++) {
+    html += `<span class="ln${i===curLine?' cur':''}" data-ln="${i}">${i}</span>`;
+  }
+  g.innerHTML = html;
+  g.scrollTop = ta.scrollTop;
+
+  const lineH = 19;
+  const pad = 4;
+  const top = pad + (curLine - 1) * lineH - ta.scrollTop;
+  const alb = document.getElementById('active-line-bg');
+  if(alb) {
+    alb.style.top = top + 'px';
+    alb.style.display = 'block';
+  }
+
+  const lines = ta.value.substring(0, pos).split('\n');
+  const col = lines[lines.length - 1].length + 1;
+  const curPosEl = document.getElementById('cur-pos');
+  if(curPosEl) curPosEl.textContent = `Ln ${curLine}, Col ${col}`;
+}
+
+function syncScroll() {
+  const ta = getTA();
+  const hi = getHI();
+  const g = getGutter();
+  if(!ta || !hi || !g) return;
+  hi.scrollTop = ta.scrollTop;
+  hi.scrollLeft = ta.scrollLeft;
+  g.scrollTop = ta.scrollTop;
+
+  const pos = ta.selectionStart || 0;
+  const before = ta.value.substring(0, pos);
+  const curLine = before.split('\n').length;
+  const top = 4 + (curLine - 1) * 19 - ta.scrollTop;
+  const alb = document.getElementById('active-line-bg');
+  if(alb) alb.style.top = top + 'px';
+
+  const pct = ta.scrollTop / (ta.scrollHeight - ta.clientHeight || 1);
+  const mm = document.getElementById('mm-slider');
+  const minimap = document.getElementById('minimap');
+  if(mm && minimap) mm.style.top = Math.round(pct * (minimap.offsetHeight - 80)) + 'px';
+}
+
+function onEditorClick() {
+  const ta = getTA();
+  updateGutter(ta.value.split('\n').length);
+}
+
+function onEditorKey(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const ta = getTA();
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const spaces = '    ';
+    ta.value = ta.value.substring(0, start) + spaces + ta.value.substring(end);
+    ta.selectionStart = ta.selectionEnd = start + spaces.length;
+    onEdit();
+    return;
+  }
+  
+  if (e.key === 'Enter') {
+    const ta = getTA();
+    const start = ta.selectionStart;
+    const lineStart = ta.value.lastIndexOf('\n', start - 1) + 1;
+    const currentLine = ta.value.substring(lineStart, start);
+    const indentMatch = currentLine.match(/^(\s*)/);
+    const indent = indentMatch ? indentMatch[1] : '';
+    const extraIndent = /[:({[]$/.test(currentLine.trim()) ? '    ' : '';
+    if (indent || extraIndent) {
+      e.preventDefault();
+      const ins = '\n' + indent + extraIndent;
+      ta.value = ta.value.substring(0, start) + ins + ta.value.substring(ta.selectionEnd);
+      ta.selectionStart = ta.selectionEnd = start + ins.length;
+      onEdit();
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// EXECUTION & COMPILERS
+// ─────────────────────────────────────────────────────────────────────────────
+let termHistory = [];
+let termHistIdx = -1;
+let termCWD = 'C:\\Users\\Mayur\\Desktop\\Choco Pie Project';
+let waitingForInput = null;
+let currentOutSpan = null;
+
+function termUpdatePrompt() {
+  document.getElementById('term-prompt').textContent = `PS ${termCWD}`;
+}
+
+function termPrint(text) {
+  const out = document.getElementById('term-output');
+  if (!currentOutSpan) {
+    currentOutSpan = document.createElement('span');
+    currentOutSpan.className = 'to';
+    out.appendChild(currentOutSpan);
+  }
+  currentOutSpan.appendChild(document.createTextNode(text));
+  out.scrollTop = out.scrollHeight;
+}
+
+function addTermLine(cls, html) {
+  const out = document.getElementById('term-output');
+  const div = document.createElement('div');
+  div.className = 'to' + (cls ? ' ' + cls : '');
+  div.innerHTML = html;
+  out.appendChild(div);
+  currentOutSpan = null; 
+  out.scrollTop = out.scrollHeight;
+}
+
+function setLoader(text, show) {
+  const loader = document.getElementById('py-loading');
+  if(show) {
+    document.getElementById('run-status-text').textContent = text;
+    loader.classList.add('vis');
+    document.getElementById('run-btn').classList.add('running');
+    document.getElementById('run-btn').innerHTML = '<div class="spinner" style="margin:0"></div>';
+  } else {
+    loader.classList.remove('vis');
+    document.getElementById('run-btn').classList.remove('running');
+    document.getElementById('run-btn').innerHTML = '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2l10 6-10 6V2z"/></svg> Run';
+  }
+}
+
+// Python Executor
+function executePython(code) {
+  return new Promise((resolve) => {
+    currentOutSpan = null; 
+    const cfg = {
+      output: (text) => { termPrint(text); },
+      read: (fname) => {
+        if (Sk.builtinFiles && Sk.builtinFiles.files[fname]) return Sk.builtinFiles.files[fname];
+        throw new Error(`File not found: '${fname}'`);
+      },
+      inputfun: function(promptStr) {
+        return new Promise(res => {
+          if (promptStr) termPrint(promptStr);
+          document.getElementById('term-prompt').style.display = 'none';
+          document.getElementById('term-output').scrollTop = document.getElementById('term-output').scrollHeight;
+          waitingForInput = res;
+        });
+      },
+      execLimit: 15000,
+      __future__: Sk.python3,
+    };
+    Sk.configure(cfg);
+    Sk.misceval.asyncToPromise(() => Sk.importMainWithBody('<stdin>', false, code, true))
+      .then(() => resolve({ ok: true }))
+      .catch(err => resolve({ ok: false, error: err.toString() }));
+  });
+}
+
+// C/C++ Executor
+function executeC(code) {
+  return new Promise((resolve) => {
+    currentOutSpan = null;
+    if (typeof JSCPP !== 'undefined') {
+        const config = {
+          stdio: { write: function(s) { termPrint(s); } }
+        };
+        try {
+          const exitCode = JSCPP.run(code, "", config);
+          resolve({ ok: true, exit: exitCode });
+        } catch(e) {
+          resolve({ ok: false, error: e.toString() });
+        }
+    } else {
+        // Robust Native Simulation Fallback if CDN fails or is blocked
+        let simulatedOutput = false;
+        const lines = code.split('\n');
+        lines.forEach(line => {
+          if (line.includes('cout') || line.includes('printf')) {
+            let text = line.replace(/.*cout\s*<<\s*/, '')
+                           .replace(/.*printf\s*\(\s*/, '')
+                           .replace(/<<\s*endl.*/, '')
+                           .replace(/\);.*/, '')
+                           .replace(/;.*/, '')
+                           .trim();
+            text = text.replace(/^["']|["']$/g, '').replace(/\\n/g, '\n');
+            if (text && text !== '""' && text !== "''") {
+              termPrint(text + '\n');
+              simulatedOutput = true;
+            }
+          }
+        });
+        if (!simulatedOutput) {
+          addTermLine('dim', '(Simulated C/C++ execution - no output found)');
+        }
+        resolve({ ok: true, exit: 0 });
+    }
+  });
+}
+
+async function runCode() {
+  if(!currentTab) return;
+  const node = fileNodes[currentTab];
+  const lang = getLang(node.name);
+  const code = getTA().value;
+  const fname = node.name;
+
+  document.getElementById('term-in').focus();
+  
+  if (lang === 'html') {
+    addTermLine('', `<span class="tp">PS</span> <span class="tpa">${escHtml(termCWD)}</span>&gt; start ${fname}`);
+    const win = window.open('', '_blank');
+    win.document.write(code);
+    win.document.close();
+    addTermLine('suc', `HTML preview launched in a new tab.`);
+    termUpdatePrompt();
+    return;
+  }
+  
+  if (lang === 'css') {
+    addTermLine('', `<span class="tp">PS</span> <span class="tpa">${escHtml(termCWD)}</span>&gt; run ${fname}`);
+    addTermLine('dim', 'CSS is a styling language. It cannot be run independently. Include it in an HTML file using a <link> tag.');
+    termUpdatePrompt();
+    return;
+  }
+
+  const executor = lang === 'python' ? 'python' : (lang === 'java' ? 'javac' : 'gcc');
+  addTermLine('', `<span class="tp">PS</span> <span class="tpa">${escHtml(termCWD)}</span>&gt; ${executor} ${fname}`);
+
+  if (lang === 'python') {
+    if (typeof Sk === 'undefined') { addTermLine('err', 'Python runtime not loaded. Check CDN link.'); return; }
+    setLoader('Running Python...', true);
+    const result = await executePython(code);
+    setLoader('', false);
+    if (result.ok) addTermLine('suc', `\nProcess finished with exit code 0`);
+    else { addTermLine('err', escHtml(result.error)); addTermLine('err', '\nProcess finished with exit code 1'); }
+  } 
+  else if (lang === 'c' || lang === 'cpp') {
+    setLoader('Compiling C/C++...', true);
+    await sleep(400); // simulate compile time
+    const result = await executeC(code);
+    setLoader('', false);
+    if (result.ok) addTermLine('suc', `\nProcess finished with exit code ${result.exit !== undefined ? result.exit : 0}`);
+    else { addTermLine('err', escHtml(result.error)); addTermLine('err', '\nProcess finished with exit code 1'); }
+  }
+  else if (lang === 'java') {
+    setLoader('Compiling Java...', true);
+    await sleep(600);
+    setLoader('Running JVM...', true);
+    await sleep(400);
+    setLoader('', false);
+    
+    // Simulate simple Java System.out outputs
+    let simulatedOutput = false;
+    const lines = code.split('\n');
+    lines.forEach(line => {
+      if (line.includes('System.out.print')) {
+        let text = line.replace(/.*System\.out\.print(?:ln)?\s*\(\s*/, '')
+                       .replace(/\);.*/, '')
+                       .trim();
+        text = text.replace(/^["']|["']$/g, '').replace(/\\n/g, '\n');
+        if (text) {
+           termPrint(text + (line.includes('println') ? '\n' : ''));
+           simulatedOutput = true;
+        }
+      }
+    });
+
+    if (!simulatedOutput) {
+       addTermLine('dim', '(Simulated Java execution - no System.out.println found)');
+    } else {
+       termPrint('\n');
+    }
+    addTermLine('suc', 'Process finished with exit code 0');
+  }
+  else {
+    addTermLine('dim', 'No runner configured for this file type.');
+  }
+
+  addTermLine('', '');
+  termUpdatePrompt();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function clearTerm() {
+  document.getElementById('term-output').innerHTML = '';
+  currentOutSpan = null;
+  toast('Terminal cleared');
+}
+
+function focusTerm() {
+  document.getElementById('term-in').focus();
+  closeAll();
+}
+
+function toggleMaxPanel() {
+  const p = document.getElementById('panel');
+  p.style.height = p.style.height === '80vh' ? '220px' : '80vh';
+}
+
+async function termKey(e) {
+  const input = document.getElementById('term-in');
+
+  if (e.key === 'Enter') {
+    const cmd = input.value; 
+    input.value = '';
+
+    if (waitingForInput) {
+      termPrint(cmd + '\n');
+      const resolve = waitingForInput;
+      waitingForInput = null;
+      document.getElementById('term-prompt').style.display = '';
+      resolve(cmd);
+      return;
+    }
+
+    const trimmedCmd = cmd.trim();
+    if (trimmedCmd) { termHistory.unshift(trimmedCmd); termHistIdx = -1; }
+    addTermLine('', `<span class="tp">PS</span> <span class="tpa">${escHtml(termCWD)}</span>&gt; ${escHtml(trimmedCmd)}`);
+    if (trimmedCmd) await termExec(trimmedCmd); else termUpdatePrompt();
+
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (termHistIdx < termHistory.length - 1) { termHistIdx++; input.value = termHistory[termHistIdx]; }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (termHistIdx > 0) { termHistIdx--; input.value = termHistory[termHistIdx]; }
+    else { termHistIdx = -1; input.value = ''; }
+  } else if (e.key === 'c' && e.ctrlKey) {
+    addTermLine('', '^C'); input.value = '';
+    if (waitingForInput) {
+      const res = waitingForInput; waitingForInput = null;
+      document.getElementById('term-prompt').style.display = ''; res(''); 
+    }
+  } else if (e.key === 'l' && e.ctrlKey) {
+    e.preventDefault(); clearTerm();
+  }
+}
+
+async function termExec(cmd) {
+  const parts = cmd.trim().split(/\s+/);
+  const prog = parts[0].toLowerCase();
+  const args = parts.slice(1);
+
+  switch(prog) {
+    case 'cls':
+    case 'clear':
+      clearTerm(); break;
+    case 'pwd':
+      addTermLine('', escHtml(termCWD)); break;
+    case 'ls':
+    case 'dir':
+      addTermLine('', '    Directory: ' + escHtml(termCWD) + '\n');
+      Object.values(fileNodes).forEach(n => { if(n.type === 'file' && n.parent === 'root') addTermLine('info', escHtml(n.name)); });
+      addTermLine('', ''); break;
+    case 'echo':
+      addTermLine('', escHtml(args.join(' '))); break;
+    case 'cat':
+    case 'type': {
+      const fname = args[0];
+      let foundId = null;
+      Object.values(fileNodes).forEach(n => { if(n.type === 'file' && n.name.toLowerCase() === (fname||'').toLowerCase()) foundId = n.id; });
+      if (foundId && FILE_CONTENTS[foundId] !== undefined) FILE_CONTENTS[foundId].split('\n').forEach(l => addTermLine('', escHtml(l)));
+      else addTermLine('err', `cat: ${escHtml(fname||'')}: No such file or directory`);
+      break;
+    }
+    case 'cd': {
+      if (!args[0] || args[0] === '~') termCWD = 'C:\\Users\\Mayur';
+      else if (args[0] === '..') { const p = termCWD.split('\\'); if (p.length > 1) p.pop(); termCWD = p.join('\\'); }
+      else if (args[0] === 'Desktop' || args[0] === 'Choco Pie Project' || args[0] === '.') termCWD = 'C:\\Users\\Mayur\\Desktop\\Choco Pie Project';
+      else termCWD = termCWD + '\\' + args[0];
+      termUpdatePrompt(); break;
+    }
+    case 'python':
+    case 'python3':
+    case 'py': {
+      const fname = args[0]; let runId = currentTab;
+      if (fname && !fname.startsWith('-')) { Object.values(fileNodes).forEach(n => { if(n.type === 'file' && n.name.toLowerCase() === fname.toLowerCase()) runId = n.id; }); }
+      if (!runId) { addTermLine('err','File not found.'); break; }
+      addTermLine('info', `Executing ${fileNodes[runId].name} via Python (Skulpt)…`);
+      const r = await executePython(FILE_CONTENTS[runId] || '');
+      if (r.ok) addTermLine('suc', '\nProcess finished with exit code 0');
+      else { addTermLine('err', escHtml(r.error)); addTermLine('err', 'Process finished with exit code 1'); }
+      break;
+    }
+    case 'gcc':
+    case 'g++':
+    case 'c':
+    case 'cpp': {
+      const fname = args[0]; let runId = currentTab;
+      if (fname && !fname.startsWith('-')) { Object.values(fileNodes).forEach(n => { if(n.type === 'file' && n.name.toLowerCase() === fname.toLowerCase()) runId = n.id; }); }
+      if (!runId) { addTermLine('err','File not found.'); break; }
+      const code = FILE_CONTENTS[runId] || '';
+      addTermLine('info', `Compiling and executing ${fileNodes[runId].name} via JSCPP...`);
+      setLoader('Compiling C/C++...', true);
+      await sleep(400); 
+      const result = await executeC(code);
+      setLoader('', false);
+      if (result.ok) addTermLine('suc', `\nProcess finished with exit code ${result.exit !== undefined ? result.exit : 0}`);
+      else { addTermLine('err', escHtml(result.error)); addTermLine('err', 'Process finished with exit code 1'); }
+      break;
+    }
+    case 'javac':
+    case 'java': {
+      const fname = args[0]; let runId = currentTab;
+      if (fname && !fname.startsWith('-')) { Object.values(fileNodes).forEach(n => { if(n.type === 'file' && n.name.toLowerCase() === fname.toLowerCase()) runId = n.id; }); }
+      if (!runId) { addTermLine('err','File not found.'); break; }
+      const code = FILE_CONTENTS[runId] || '';
+      
+      addTermLine('info', `Simulating Java execution for ${fileNodes[runId].name}...`);
+      setLoader('Compiling Java...', true); await sleep(600);
+      setLoader('Running JVM...', true); await sleep(400);
+      setLoader('', false);
+      
+      let simulatedOutput = false;
+      const lines = code.split('\n');
+      lines.forEach(line => {
+        if (line.includes('System.out.print')) {
+          let text = line.replace(/.*System\.out\.print(?:ln)?\s*\(\s*/, '')
+                         .replace(/\);.*/, '')
+                         .trim();
+          text = text.replace(/^["']|["']$/g, '').replace(/\\n/g, '\n');
+          if (text) {
+             termPrint(text + (line.includes('println') ? '\n' : ''));
+             simulatedOutput = true;
+          }
+        }
+      });
+
+      if (!simulatedOutput) {
+         addTermLine('dim', '(Simulated Java execution - no System.out.println found)');
+      } else {
+         termPrint('\n');
+      }
+      addTermLine('suc', 'Process finished with exit code 0');
+      break;
+    }
+    case 'history':
+      termHistory.forEach((c, i) => addTermLine('', `  ${String(termHistory.length - i).padStart(3)}  ${escHtml(c)}`)); break;
+    case 'help':
+      addTermLine('info', 'Available commands:');
+      ['python <file>', 'gcc <file>', 'javac <file>', 'ls / dir','cat <file>','cd <dir>','pwd','clear / cls','echo <text>','git','history','Ctrl+C','Ctrl+L'].forEach(l => addTermLine('', '  ' + l)); break;
+    case 'exit':
+    case 'quit':
+      addTermLine('dim', 'Type Ctrl+C to exit PowerShell, or close the terminal tab.'); break;
+    default:
+      if (cmd.trim()) { addTermLine('err', `${escHtml(prog)} : The term '${escHtml(prog)}' is not recognized.`); addTermLine('dim', `Type 'help' to see available commands.`); }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SIDEBAR & PANEL RESIZE
+// ─────────────────────────────────────────────────────────────────────────────
+{
+  const handle = document.getElementById('sb-resize');
+  const sb = document.getElementById('sidebar');
+  let sbDragging = false;
+  handle.addEventListener('mousedown', e => { sbDragging = true; handle.classList.add('dragging'); document.body.style.cursor = 'col-resize'; e.preventDefault(); });
+  document.addEventListener('mousemove', e => { if (!sbDragging) return; const mainRect = document.getElementById('main-body').getBoundingClientRect(); sb.style.width = Math.max(150, Math.min(e.clientX - mainRect.left - 48, 600)) + 'px'; });
+  document.addEventListener('mouseup', () => { if (sbDragging) { sbDragging = false; handle.classList.remove('dragging'); document.body.style.cursor = ''; } });
+}
+
+function startPanelResize(e) {
+  const panel = document.getElementById('panel');
+  const handle = document.getElementById('panel-resize');
+  const startY = e.clientY; const startH = panel.offsetHeight;
+  let dragging = true;
+  handle.classList.add('dragging'); document.body.style.cursor = 'ns-resize';
+  function move(ev) { if (!dragging) return; panel.style.height = Math.max(60, Math.min(startH + (startY - ev.clientY), window.innerHeight * 0.8)) + 'px'; }
+  function up() { dragging = false; handle.classList.remove('dragging'); document.body.style.cursor = ''; document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); }
+  document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MENUS / DROPDOWNS
+// ─────────────────────────────────────────────────────────────────────────────
+function toggleMenu(name, el) {
+  const wasOpen = el.classList.contains('open'); closeAll(); if (wasOpen) return;
+  const menu = document.getElementById('menu-' + name); if (!menu) return;
+  const rect = el.getBoundingClientRect(); menu.style.top = rect.bottom + 'px'; menu.style.left = rect.left + 'px';
+  menu.classList.add('vis'); el.classList.add('open'); document.getElementById('overlay').classList.add('vis');
+}
+
+function closeAll() {
+  document.querySelectorAll('.dropdown,.ctx').forEach(d => d.classList.remove('vis'));
+  document.getElementById('cmd-pal').classList.remove('vis');
+  document.getElementById('overlay').classList.remove('vis');
+  document.querySelectorAll('.mb-item').forEach(m => m.classList.remove('open'));
+}
+
+function switchSB(panel) {
+  closeAll();
+  document.querySelectorAll('.sb-panel').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById('sb-' + panel); if (el) el.classList.add('active');
+  document.querySelectorAll('.act-icon:not(.act-bottom *)').forEach((a, i) => a.classList.remove('active'));
+  const map = { explorer:0, search:1, scm:2, debug:3, extensions:4 };
+  const icons = document.querySelectorAll('#actbar > .act-icon');
+  if (icons[map[panel]] !== undefined) icons[map[panel]].classList.add('active');
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  sb.style.display = sb.style.display === 'none' ? '' : 'none';
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// COMMAND PALETTE
+// ─────────────────────────────────────────────────────────────────────────────
+const CMDS = [
+  { icon:'▶', label:'Run: Start Debugging', sc:'F5', action:()=>runCode() },
+  { icon:'📁', label:'File: Open Folder…', sc:'Ctrl+K Ctrl+O' },
+  { icon:'💾', label:'File: Save', sc:'Ctrl+S', action:()=>saveFile() },
+  { icon:'🔍', label:'View: Search', sc:'Ctrl+Shift+F', action:()=>switchSB('search') },
+  { icon:'🌿', label:'Git: Commit', sc:'', action:()=>switchSB('scm') },
+  { icon:'🎨', label:'Preferences: Color Theme', sc:'Ctrl+K Ctrl+T' },
+  { icon:'📝', label:'File: New File', sc:'Ctrl+N', action:()=>execExpHeader('new_file') },
+  { icon:'🔧', label:'Developer: Reload Window' },
+  { icon:'📦', label:'Extensions: Install', sc:'Ctrl+Shift+X', action:()=>switchSB('extensions') },
+  { icon:'⌨', label:'Preferences: Keyboard Shortcuts' },
+  { icon:'🖥', label:'Terminal: New Terminal', sc:'Ctrl+`', action:()=>focusTerm() },
+  { icon:'🐛', label:'Run: Toggle Breakpoint', sc:'F9' },
+  { icon:'📊', label:'View: Toggle Panel', sc:'Ctrl+J' },
+  { icon:'⚙', label:'Preferences: Open Settings', sc:'Ctrl+,' },
+];
+
+let cmdSel = 0;
+function openCmdPal() { closeAll(); document.getElementById('cmd-pal').classList.add('vis'); document.getElementById('overlay').classList.add('vis'); const inp = document.getElementById('cmd-in'); inp.value = '>'; filterCmds('>'); inp.focus(); }
+function filterCmds(q) { const query = q.replace(/^>/, '').trim().toLowerCase(); const results = CMDS.filter(c => !query || c.label.toLowerCase().includes(query)); cmdSel = 0; document.getElementById('cmd-results').innerHTML = results.slice(0, 12).map((c, i) => `<div class="cmd-item${i===0?' sel':''}" onclick="runCmd(${CMDS.indexOf(c)})"><span>${c.icon}</span><span>${c.label}</span><span class="cdesc">${c.sc||''}</span></div>`).join(''); }
+function cmdKey(e) { if (e.key === 'Escape') { closeAll(); return; } const items = document.querySelectorAll('.cmd-item'); if (e.key === 'ArrowDown') { e.preventDefault(); items[cmdSel]?.classList.remove('sel'); cmdSel = Math.min(cmdSel + 1, items.length - 1); items[cmdSel]?.classList.add('sel'); items[cmdSel]?.scrollIntoView({ block:'nearest' }); } else if (e.key === 'ArrowUp') { e.preventDefault(); items[cmdSel]?.classList.remove('sel'); cmdSel = Math.max(cmdSel - 1, 0); items[cmdSel]?.classList.add('sel'); items[cmdSel]?.scrollIntoView({ block:'nearest' }); } else if (e.key === 'Enter') { e.preventDefault(); const visibleIdx = cmdSel; const q = document.getElementById('cmd-in').value.replace(/^>/,'').trim().toLowerCase(); const results = CMDS.filter(c => !q || c.label.toLowerCase().includes(q)); if (results[visibleIdx]) runCmd(CMDS.indexOf(results[visibleIdx])); } }
+function runCmd(idx) { closeAll(); const cmd = CMDS[idx]; if (cmd?.action) cmd.action(); else toast('Executing: ' + cmd?.label); }
+function switchPTab(el, name) { document.querySelectorAll('.ptab').forEach(t => { t.classList.remove('active'); }); el.classList.add('active'); if (name === 'terminal') focusTerm(); }
+
+function toast(msg, type='info') {
+  const area = document.getElementById('notif-area'); const n = document.createElement('div'); n.className = 'notif'; const colors = { info:'#4fc1ff', suc:'#89d185', err:'#f44747' }; n.innerHTML = `<svg viewBox="0 0 16 16" fill="${colors[type]||colors.info}"><circle cx="8" cy="8" r="7"/></svg><span>${msg}</span><span class="nx" onclick="this.parentElement.remove()">✕</span>`; area.appendChild(n); setTimeout(() => n?.remove(), 3500);
+}
+
+document.addEventListener('keydown', e => {
+  const inTerm = document.activeElement === document.getElementById('term-in');
+  if (e.ctrlKey && e.shiftKey && e.key === 'P') { e.preventDefault(); openCmdPal(); return; }
+  if (e.ctrlKey && e.key === 'p') { e.preventDefault(); openCmdPal(); return; }
+  if (e.key === 'Escape') { closeAll(); return; }
+  if (e.ctrlKey && e.key === 'b') { e.preventDefault(); toggleSidebar(); return; }
+  if (e.ctrlKey && e.key === 'f') { e.preventDefault(); switchSB('search'); return; }
+  if (e.ctrlKey && e.shiftKey && e.key === 'E') { e.preventDefault(); switchSB('explorer'); return; }
+  if (e.ctrlKey && e.shiftKey && e.key === 'X') { e.preventDefault(); switchSB('extensions'); return; }
+  if (e.key === 'F5') { e.preventDefault(); runCode(); return; }
+  if (e.ctrlKey && e.key === 's' && !inTerm) { e.preventDefault(); saveFile(); return; }
+  if (e.ctrlKey && e.key === '`') { e.preventDefault(); focusTerm(); return; }
+});
+
+window.addEventListener('load', () => {
+  addTermLine('dim', 'Choco Pie PowerShell');
+  addTermLine('info', 'Choco Pie Project terminal ready. Type \'help\' for available commands.');
+  addTermLine('', '');
+  termUpdatePrompt();
+
+  renderTree();
+  renderTabs();
+  if (currentTab) switchTab(currentTab);
+
+  setTimeout(() => {
+    if(getTA()){ getTA().focus(); getTA().setSelectionRange(0, 0); updateHighlight(); drawMinimap(); }
+  }, 100);
+});
+</script>
+</body>
+</html>

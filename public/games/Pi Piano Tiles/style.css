@@ -1,0 +1,683 @@
+/* ============================================================
+   style.css — Pi Piano Tiles
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
+
+/* ── Reset & Root ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-deep:      #040a14;
+  --bg-mid:       #07111f;
+  --col-1:        #1a0a3a;
+  --col-2:        #0a1a3a;
+  --tile-grad-1:  #7c3aed;
+  --tile-grad-2:  #2563eb;
+  --tile-hit:     #a78bfa;
+  --tile-miss:    #ef4444;
+  --neon-cyan:    #22d3ee;
+  --neon-purple:  #a855f7;
+  --neon-pink:    #ec4899;
+  --gold:         #fbbf24;
+  --text-main:    #e2e8f0;
+  --text-dim:     #64748b;
+  --hit-zone-h:   96px;
+  --col-count:    4;
+  --tile-w:       80px;
+  --tile-h:       120px;
+  --board-w:      340px;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg-deep);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ── Pi Digit Background Rain ── */
+#pi-rain-canvas {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.07;
+}
+
+/* ── Layout ── */
+#app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  z-index: 1;
+}
+
+/* ── Header ── */
+#header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px 8px;
+  background: linear-gradient(180deg, rgba(7,17,31,0.97) 80%, transparent);
+  border-bottom: 1px solid rgba(34,211,238,0.12);
+  flex-shrink: 0;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pi-symbol {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: piPulse 3s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes piPulse {
+  0%, 100% { filter: drop-shadow(0 0 6px #22d3ee88); }
+  50%       { filter: drop-shadow(0 0 18px #a855f788); }
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+.brand-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--neon-cyan);
+  text-transform: uppercase;
+}
+.brand-sub {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+}
+
+/* ── Score Strip ── */
+#score-strip {
+  display: flex;
+  gap: 20px;
+}
+
+.score-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 6px 14px;
+  min-width: 72px;
+}
+.score-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+.score-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--neon-cyan);
+  transition: color 0.15s;
+}
+.score-value.flash-gold { color: var(--gold) !important; }
+
+/* ── Controls strip ── */
+#controls-strip {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.icon-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.2s, transform 0.15s;
+  color: var(--text-main);
+}
+.icon-btn:hover { background: rgba(168,85,247,0.3); transform: scale(1.07); }
+
+/* ── Pi Sequence Display ── */
+#pi-sequence {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 16px;
+  overflow: hidden;
+  width: var(--board-w);
+  max-width: 100%;
+  flex-shrink: 0;
+}
+
+.pi-digit-chip {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-dim);
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.pi-digit-chip.active {
+  background: linear-gradient(135deg, var(--tile-grad-1), var(--tile-grad-2));
+  border-color: var(--neon-purple);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(168,85,247,0.6);
+  transform: scale(1.15);
+}
+.pi-digit-chip.played {
+  background: rgba(34,211,238,0.12);
+  border-color: rgba(34,211,238,0.3);
+  color: var(--neon-cyan);
+}
+
+/* ── Note name badge ── */
+#note-badge {
+  position: absolute;
+  top: 115px;
+  right: 14px;
+  background: rgba(168,85,247,0.2);
+  border: 1px solid rgba(168,85,247,0.5);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  color: var(--neon-purple);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  z-index: 10;
+}
+#note-badge.show { opacity: 1; }
+
+/* ── Game Area ── */
+#game-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+#board {
+  position: relative;
+  width: var(--board-w);
+  max-width: 100vw;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+  border-left: 1px solid rgba(255,255,255,0.04);
+  border-right: 1px solid rgba(255,255,255,0.04);
+}
+
+/* ── Columns ── */
+.column {
+  flex: 1;
+  height: 100%;
+  position: relative;
+  border-right: 1px solid rgba(255,255,255,0.05);
+  transition: background 0.1s;
+  cursor: pointer;
+}
+.column:last-child { border-right: none; }
+
+/* Column label (note name) */
+.col-label {
+  position: absolute;
+  bottom: calc(var(--hit-zone-h) + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.5rem;
+  color: rgba(255,255,255,0.15);
+  letter-spacing: 0.05em;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Column flash on press */
+.column.pressed {
+  background: rgba(168,85,247,0.12) !important;
+}
+.column.hit-flash {
+  background: rgba(34,211,238,0.18) !important;
+}
+.column.miss-flash {
+  background: rgba(239,68,68,0.22) !important;
+}
+
+/* ── Hit Zone ── */
+#hit-zone {
+  position: absolute;
+  bottom: 0;
+  left: 0; right: 0;
+  height: var(--hit-zone-h);
+  border-top: 2px solid rgba(34,211,238,0.35);
+  background: linear-gradient(180deg,
+    rgba(34,211,238,0.03) 0%,
+    rgba(34,211,238,0.09) 100%);
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Glow line on hit zone border */
+#hit-zone::before {
+  content: '';
+  position: absolute;
+  top: -2px; left: 0; right: 0; height: 2px;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 14px 4px rgba(34,211,238,0.6);
+  animation: hitLineGlow 2s ease-in-out infinite alternate;
+}
+@keyframes hitLineGlow {
+  from { opacity: 0.5; }
+  to   { opacity: 1; }
+}
+
+/* ── Column dividers in hit zone ── */
+.hit-zone-col {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 25%;
+  border-right: 1px solid rgba(255,255,255,0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hit-zone-col:last-child { border-right: none; }
+.hit-zone-col svg { opacity: 0.15; }
+
+/* ── Tiles ── */
+.tile {
+  position: absolute;
+  left: 2px; right: 2px;
+  border-radius: 10px;
+  background: linear-gradient(160deg, #2d1b69 0%, #1e3a5f 100%);
+  box-shadow: 0 4px 20px rgba(124,58,237,0.4);
+  border: 1px solid rgba(124,58,237,0.5);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  transition: box-shadow 0.05s;
+  z-index: 3;
+  overflow: hidden;
+}
+
+/* Shimmer on tile */
+.tile::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -60%; width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+  animation: tileShimmer 2.5s linear infinite;
+}
+@keyframes tileShimmer {
+  0%   { left: -60%; }
+  100% { left: 160%; }
+}
+
+.tile-digit {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 12px rgba(168,85,247,0.9);
+  line-height: 1;
+}
+.tile-note {
+  font-size: 0.52rem;
+  font-family: 'Orbitron', sans-serif;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.08em;
+}
+
+/* ── Tile States ── */
+.tile.hit {
+  background: linear-gradient(160deg, var(--neon-purple), var(--neon-cyan)) !important;
+  box-shadow: 0 0 30px rgba(34,211,238,0.8), 0 0 60px rgba(168,85,247,0.5) !important;
+  border-color: var(--neon-cyan) !important;
+  transform: scale(0.95);
+  transition: all 0.08s;
+}
+.tile.miss {
+  background: linear-gradient(160deg, #7f1d1d, #450a0a) !important;
+  border-color: var(--tile-miss) !important;
+  box-shadow: 0 0 20px rgba(239,68,68,0.6) !important;
+}
+
+/* ── Particle Canvas ── */
+#particle-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+/* ── Combo Display ── */
+#combo-display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(251,191,36,0.8);
+  pointer-events: none;
+  z-index: 25;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+#combo-display.show {
+  opacity: 1;
+  animation: comboPop 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes comboPop {
+  from { transform: translate(-50%,-50%) scale(0.5); opacity: 0; }
+  60%  { transform: translate(-50%,-50%) scale(1.15); opacity: 1; }
+  to   { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+}
+
+/* ── Side Info Panel ── */
+#side-panel {
+  width: 180px;
+  height: 100%;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: rgba(7,17,31,0.6);
+  border-left: 1px solid rgba(255,255,255,0.05);
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.panel-section {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 12px;
+}
+.panel-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.55rem;
+  letter-spacing: 0.2em;
+  color: var(--neon-cyan);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.panel-title::before {
+  content: '';
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 6px var(--neon-cyan);
+  flex-shrink: 0;
+}
+
+/* Speed slider */
+.speed-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.speed-label {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  display: flex;
+  justify-content: space-between;
+}
+input[type=range] {
+  width: 100%;
+  accent-color: var(--neon-purple);
+  cursor: pointer;
+}
+
+/* Key map */
+.key-map {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+}
+.key-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.6rem;
+  color: var(--text-dim);
+}
+.key-badge {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.55rem;
+  color: #fff;
+  min-width: 20px;
+  text-align: center;
+}
+
+/* Digit color legend */
+.digit-legend {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+.legend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.legend-dot {
+  width: 18px; height: 18px;
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: #fff;
+}
+.legend-note {
+  font-size: 0.45rem;
+  color: var(--text-dim);
+  font-family: 'Orbitron', sans-serif;
+}
+
+/* ── Overlays ── */
+.overlay {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.overlay-card {
+  background: linear-gradient(145deg, rgba(10,20,40,0.95), rgba(15,10,35,0.95));
+  border: 1px solid rgba(34,211,238,0.2);
+  border-radius: 24px;
+  padding: 40px 48px;
+  text-align: center;
+  max-width: 380px;
+  width: 90%;
+  box-shadow: 0 0 60px rgba(34,211,238,0.1), 0 0 120px rgba(168,85,247,0.08);
+  animation: cardIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: scale(0.85) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.overlay-pi {
+  font-size: 4rem;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 0 20px rgba(34,211,238,0.6));
+  animation: piPulse 2s ease-in-out infinite;
+}
+
+.overlay-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+
+.overlay-sub {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.pi-preview {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.7rem;
+  color: rgba(34,211,238,0.6);
+  letter-spacing: 0.1em;
+  margin-bottom: 24px;
+  word-break: break-all;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--tile-grad-1), var(--tile-grad-2));
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 32px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 20px rgba(124,58,237,0.5);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(124,58,237,0.7);
+}
+.btn-primary:active { transform: translateY(0); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  color: var(--text-main);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 11px 24px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s;
+  margin-left: 8px;
+}
+.btn-secondary:hover { background: rgba(255,255,255,0.1); transform: translateY(-1px); }
+
+/* Game over card extras */
+.go-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.go-stat {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 10px;
+}
+.go-stat-label {
+  font-size: 0.55rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.go-stat-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--neon-cyan);
+}
+
+/* ── Volume control ── */
+.vol-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+}
+.vol-row span { min-width: 22px; }
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  #side-panel { display: none; }
+  :root { --board-w: 100vw; }
+  #board { width: 100vw; }
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.4); border-radius: 2px; }
+
+/* ── Digit color palette ── */
+.d0 { background: #1a1a5e; }
+.d1 { background: #1a3f5e; }
+.d2 { background: #1a5e4a; }
+.d3 { background: #3d5e1a; }
+.d4 { background: #5e4a1a; }
+.d5 { background: #5e1a1a; }
+.d6 { background: #5e1a5e; }
+.d7 { background: #3a1a5e; }
+.d8 { background: #1a4a5e; }
+.d9 { background: #0a5e3a; }
