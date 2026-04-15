@@ -55,18 +55,7 @@ This project brings together all interpretations of “Pi”:
 
 
 
-## Project Structure
 
-```
-
-app/            → Entry & routing
-components/     → UI components
-lib/            → Core logic & utilities
-store/          → Zustand state management
-public/         → Static assets
-types/          → Type definitions
-
-````
 
 
 ## Installation
