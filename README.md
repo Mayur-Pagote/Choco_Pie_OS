@@ -5,7 +5,7 @@
 
 Choco Pie OS is a **browser-based desktop operating system** built using a modular, OS-like architecture. It combines creativity, education, and system design into a single interactive platform inspired by **Mathematical π, Raspberry Pi, and Pie**.
 
----
+
 
 ## 🌐 Live Demo
 
@@ -23,7 +23,6 @@ Choco Pie OS is a **browser-based desktop operating system** built using a modul
 - Modular app architecture (plug-and-play system)
 - Themed UI inspired by Raspberry Pi OS + Choco Pie aesthetics
 
----
 
 ## Architecture Overview
 
@@ -36,7 +35,6 @@ Choco Pie OS is designed like a real operating system:
 - **Core Services** → File system, theme engine, event system  
 - **Subsystems** → VS Code Lite, GamePi, Pi Apps  
 
----
 
 ## All Things Pi
 
@@ -46,7 +44,6 @@ This project brings together all interpretations of “Pi”:
 - Raspberry Pi → OS-inspired UI and system design  
 - Pie → theme, identity, and visual design  
 
----
 
 ## Tech Stack
 
@@ -56,7 +53,7 @@ This project brings together all interpretations of “Pi”:
 - **Execution Engines:** Skulpt (Python), JS-based compilers  
 - **APIs:** Web Audio API, Canvas API  
 
----
+
 
 ## Project Structure
 
@@ -71,7 +68,6 @@ types/          → Type definitions
 
 ````
 
----
 
 ## Installation
 
@@ -82,7 +78,6 @@ npm install
 npm run dev
 ````
 
----
 
 
 
