@@ -50,6 +50,15 @@ const COMMANDS: Record<string, AppId> = {
   quiz: "quiz",
   mandala: "mandala",
   gallery: "gallery",
+  pico: "pico-playground",
+  picoplayground: "pico-playground",
+  "pico-playground": "pico-playground",
+  rp5: "raspberry-pi-5-simulator",
+  pi5: "raspberry-pi-5-simulator",
+  simulator: "raspberry-pi-5-simulator",
+  raspberry5: "raspberry-pi-5-simulator",
+  raspberrypi5: "raspberry-pi-5-simulator",
+  "raspberry-pi-5-simulator": "raspberry-pi-5-simulator",
 };
 
 export function RunDialogApp() {
@@ -87,7 +96,7 @@ export function RunDialogApp() {
         <div className="text-lg font-semibold">Run Command</div>
         <p className="mt-2 text-sm text-[#666666]">
           Try commands like <span className="font-semibold">browser</span>, <span className="font-semibold">terminal</span>, <span className="font-semibold">calc</span>, or <span className="font-semibold">tasks</span>.
-          Pi apps such as <span className="font-semibold">pisnake</span>, <span className="font-semibold">gallery</span>, <span className="font-semibold">mandala</span>, and <span className="font-semibold">pidefender</span> work too.
+          Pi apps such as <span className="font-semibold">pisnake</span>, <span className="font-semibold">gallery</span>, <span className="font-semibold">mandala</span>, <span className="font-semibold">pidefender</span>, <span className="font-semibold">pico</span>, and <span className="font-semibold">pi5</span> work too.
         </p>
 
         <form onSubmit={onSubmit} className="app-toolbar-wrap mt-4 flex flex-wrap gap-2">

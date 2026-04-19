@@ -36,6 +36,8 @@ export type AppId =
   | "quiz"
   | "mandala"
   | "gallery"
+  | "pico-playground"
+  | "raspberry-pi-5-simulator"
   | "run-dialog"
   | "shutdown-dialog";
 
@@ -62,8 +64,10 @@ export type IconName =
   | "calculator"
   | "task-manager"
   | "folder"
+  | "pico"
   | "choco"
   | "raspberry"
+  | "raspberry-pi5"
   | "usb"
   | "pi"
   | "piday"

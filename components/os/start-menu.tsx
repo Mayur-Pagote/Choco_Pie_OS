@@ -292,6 +292,8 @@ export function StartMenu({
           { label: "VSCode Lite", glyph: "vscode", appId: "vscode" },
           { label: "Terminal", glyph: "terminal", appId: "terminal" },
           { label: "Text Editor", glyph: "text-editor", appId: "text-editor" },
+          { label: "Pico Playground", glyph: "pico-playground", appId: "pico-playground" },
+          { label: "Raspberry Pi 5 Simulator", glyph: "raspberry-pi-5-simulator", appId: "raspberry-pi-5-simulator" },
         ],
       },
       {
@@ -353,6 +355,8 @@ export function StartMenu({
           { label: "Pi Quiz", glyph: "quiz", appId: "quiz" },
           { label: "Pi Mandala", glyph: "mandala", appId: "mandala" },
           { label: "Pi Gallery", glyph: "gallery", appId: "gallery" },
+          { label: "Pico Playground", glyph: "pico-playground", appId: "pico-playground" },
+          { label: "Raspberry Pi 5 Simulator", glyph: "raspberry-pi-5-simulator", appId: "raspberry-pi-5-simulator" },
         ],
       },
       {

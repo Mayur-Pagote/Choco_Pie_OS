@@ -25,6 +25,17 @@ function FolderIcon({ className = "h-10 w-10" }: IconProps) {
   );
 }
 
+function PicoIcon({ className = "h-10 w-10" }: IconProps) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
+      <rect x="10" y="12" width="44" height="40" rx="8" fill="#ff86b3" stroke="#d45c8b" strokeWidth="2" />
+      <rect x="19" y="20" width="26" height="24" rx="4" fill="#ffd3e5" stroke="#e49abc" strokeWidth="1.8" />
+      <path d="M28 26h8m-1 0v12m-5-12v12m-3-8c2 0 3.9-.5 5.3-1.5" fill="none" stroke="#8a2f57" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" />
+      <path d="M14 18h-4M14 26h-4M14 34h-4M14 42h-4M54 18h4M54 26h4M54 34h4M54 42h4" fill="none" stroke="#f4b5cf" strokeLinecap="round" strokeWidth="2" />
+    </svg>
+  );
+}
+
 function BrowserIcon({ className = "h-10 w-10" }: IconProps) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
@@ -207,6 +218,20 @@ function RaspberryIcon({ className = "h-10 w-10" }: IconProps) {
       <circle cx="24" cy="30" r="4" fill="#f4e6ec" />
       <circle cx="40" cy="30" r="4" fill="#f4e6ec" />
       <circle cx="32" cy="40" r="5" fill="#f4e6ec" />
+    </svg>
+  );
+}
+
+function RaspberryPi5Icon({ className = "h-10 w-10" }: IconProps) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
+      <path d="M32 11l9 4 7 8-2 17-14 13-14-13-2-17 7-8 9-4z" fill="#cf2d5d" />
+      <path d="M24 12c0-5 4-8 8-8s8 3 8 8c-2 2-4 3-8 3s-6-1-8-3z" fill="#4b9f50" />
+      <circle cx="24" cy="30" r="3.7" fill="#f4e6ec" />
+      <circle cx="40" cy="30" r="3.7" fill="#f4e6ec" />
+      <circle cx="32" cy="40" r="4.8" fill="#f4e6ec" />
+      <circle cx="48" cy="48" r="10" fill="#121d3a" stroke="#3e568a" strokeWidth="2" />
+      <path d="M44 44h8m-1 0v8m-5-8v8m-2-5c1.7 0 3.3-.4 4.5-1.2" fill="none" stroke="#9cc3ff" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" />
     </svg>
   );
 }
@@ -408,6 +433,8 @@ export function AppIcon({
     case "files":
     case "folder":
       return <FolderIcon className={className} />;
+    case "pico":
+      return <PicoIcon className={className} />;
     case "browser":
       return <BrowserIcon className={className} />;
     case "settings":
@@ -458,6 +485,8 @@ export function AppIcon({
       return <ChocoPieIcon className={className} />;
     case "raspberry":
       return <RaspberryIcon className={className} />;
+    case "raspberry-pi5":
+      return <RaspberryPi5Icon className={className} />;
     default:
       return <RaspberryIcon className={className} />;
   }

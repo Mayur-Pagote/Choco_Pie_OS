@@ -133,6 +133,32 @@ function rememberWindowBounds(
   };
 }
 
+function updateWindowWithBoundsMemory(
+  state: Pick<OsState, "windows" | "windowPlacementMemory">,
+  id: string,
+  updater: (windowItem: WindowInstance) => WindowInstance,
+) {
+  let nextWindowPlacementMemory = state.windowPlacementMemory;
+
+  const windows = state.windows.map((windowItem) => {
+    if (windowItem.id !== id) {
+      return windowItem;
+    }
+
+    const updatedWindow = updater(windowItem);
+    nextWindowPlacementMemory = rememberWindowBounds(
+      nextWindowPlacementMemory,
+      updatedWindow,
+    );
+    return updatedWindow;
+  });
+
+  return {
+    windows,
+    windowPlacementMemory: nextWindowPlacementMemory,
+  };
+}
+
 function makeWindow(
   appId: AppId,
   existingCount: number,
@@ -278,69 +304,29 @@ export const useOsStore = create<OsState>()(
         }),
       updateWindowPosition: (id, x, y) =>
         set((state) => {
-          let nextWindowPlacementMemory = state.windowPlacementMemory;
-
-          const windows = state.windows.map((window) => {
-            if (window.id !== id) {
-              return window;
-            }
-
-            const nextWindow = { ...window, x, y };
-            nextWindowPlacementMemory = rememberWindowBounds(
-              nextWindowPlacementMemory,
-              nextWindow,
-            );
-            return nextWindow;
-          });
-
-          return {
-            windows,
-            windowPlacementMemory: nextWindowPlacementMemory,
-          };
+          return updateWindowWithBoundsMemory(state, id, (windowItem) => ({
+            ...windowItem,
+            x,
+            y,
+          }));
         }),
       updateWindowSize: (id, width, height) =>
         set((state) => {
-          let nextWindowPlacementMemory = state.windowPlacementMemory;
-
-          const windows = state.windows.map((window) => {
-            if (window.id !== id) {
-              return window;
-            }
-
-            const nextWindow = { ...window, width, height };
-            nextWindowPlacementMemory = rememberWindowBounds(
-              nextWindowPlacementMemory,
-              nextWindow,
-            );
-            return nextWindow;
-          });
-
-          return {
-            windows,
-            windowPlacementMemory: nextWindowPlacementMemory,
-          };
+          return updateWindowWithBoundsMemory(state, id, (windowItem) => ({
+            ...windowItem,
+            width,
+            height,
+          }));
         }),
       updateWindowBounds: (id, x, y, width, height) =>
         set((state) => {
-          let nextWindowPlacementMemory = state.windowPlacementMemory;
-
-          const windows = state.windows.map((window) => {
-            if (window.id !== id) {
-              return window;
-            }
-
-            const nextWindow = { ...window, x, y, width, height };
-            nextWindowPlacementMemory = rememberWindowBounds(
-              nextWindowPlacementMemory,
-              nextWindow,
-            );
-            return nextWindow;
-          });
-
-          return {
-            windows,
-            windowPlacementMemory: nextWindowPlacementMemory,
-          };
+          return updateWindowWithBoundsMemory(state, id, (windowItem) => ({
+            ...windowItem,
+            x,
+            y,
+            width,
+            height,
+          }));
         }),
       setDesktopIconPosition: (appId, x, y) =>
         set((state) => ({

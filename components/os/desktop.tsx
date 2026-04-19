@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { APP_DEFINITIONS } from "@/lib/apps";
+import { APP_DEFINITIONS, APP_MAP } from "@/lib/apps";
 import {
   clampDesktopIconPosition,
   DEFAULT_VIEWPORT,
@@ -21,6 +21,10 @@ import { StartMenu } from "./start-menu";
 import { WindowManager } from "./window-manager";
 
 const BOOT_DURATION_MS = 2200;
+const REQUIRED_DESKTOP_APP_IDS: readonly AppId[] = [
+  "pico-playground",
+  "raspberry-pi-5-simulator",
+];
 
 export function DesktopShell() {
   const openApp = useOsStore((state) => state.openApp);
@@ -45,8 +49,18 @@ export function DesktopShell() {
     () => WALLPAPERS.find((entry) => entry.id === wallpaperId) ?? WALLPAPERS[0],
     [wallpaperId],
   );
+  const pinnedDesktopApps = useMemo(
+    () => REQUIRED_DESKTOP_APP_IDS.map((appId) => APP_MAP[appId]),
+    [],
+  );
   const desktopApps = useMemo(
-    () => APP_DEFINITIONS.filter((app) => app.desktop),
+    () => {
+      const requiredDesktopApps = new Set<AppId>(REQUIRED_DESKTOP_APP_IDS);
+
+      return APP_DEFINITIONS.filter(
+        (app) => app.desktop && !requiredDesktopApps.has(app.id),
+      );
+    },
     [],
   );
 
@@ -98,7 +112,8 @@ export function DesktopShell() {
       return;
     }
 
-    const nextPositions = desktopApps.reduce<DesktopIconPositions>((positions, app, index) => {
+    const arrangedApps = [...pinnedDesktopApps, ...desktopApps];
+    const nextPositions = arrangedApps.reduce<DesktopIconPositions>((positions, app, index) => {
       const defaultPosition = getDesktopIconDefaultPosition(index, viewportSize.height);
       positions[app.id] = clampDesktopIconPosition(
         defaultPosition,
@@ -111,7 +126,7 @@ export function DesktopShell() {
     lastArrangedViewportRef.current = viewportSize;
     setDesktopIconPositions(nextPositions);
     setSelectedDesktopItem(null);
-  }, [desktopApps, mounted, setDesktopIconPositions, viewportSize]);
+  }, [desktopApps, mounted, pinnedDesktopApps, setDesktopIconPositions, viewportSize]);
 
   const rotateWallpaper = () => {
     const currentIndex = WALLPAPERS.findIndex((entry) => entry.id === wallpaperId);
@@ -121,7 +136,8 @@ export function DesktopShell() {
   };
 
   const autoArrangeDesktopApps = () => {
-    const nextPositions = desktopApps.reduce<DesktopIconPositions>((positions, app, index) => {
+    const arrangedApps = [...pinnedDesktopApps, ...desktopApps];
+    const nextPositions = arrangedApps.reduce<DesktopIconPositions>((positions, app, index) => {
       const defaultPosition = getDesktopIconDefaultPosition(index, effectiveViewport.height);
       positions[app.id] = clampDesktopIconPosition(
         defaultPosition,
@@ -157,8 +173,31 @@ export function DesktopShell() {
       <div className="desktop-grid absolute inset-0 opacity-10" />
 
       <div className="absolute inset-0 z-10">
-        {desktopApps.map((app, index) => {
+        {pinnedDesktopApps.map((app, index) => {
           const defaultPosition = getDesktopIconDefaultPosition(index, effectiveViewport.height);
+          const position = clampDesktopIconPosition(
+            effectiveDesktopIconPositions[app.id] ?? defaultPosition,
+            effectiveViewport.width,
+            effectiveViewport.height,
+          );
+
+          return (
+            <DesktopIcon
+              key={app.id}
+              app={app}
+              position={position}
+              selected={selectedDesktopItem === app.id}
+              onSelect={() => setSelectedDesktopItem(app.id)}
+              onOpen={() => openApp(app.id)}
+              onMove={(x, y) => setDesktopIconPosition(app.id, x, y)}
+            />
+          );
+        })}
+        {desktopApps.map((app, index) => {
+          const defaultPosition = getDesktopIconDefaultPosition(
+            index + pinnedDesktopApps.length,
+            effectiveViewport.height,
+          );
           const position = clampDesktopIconPosition(
             effectiveDesktopIconPositions[app.id] ?? defaultPosition,
             effectiveViewport.width,

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PicoSim — Raspberry Pi Pico Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 28 28" fill="none" width="28" height="28">
+      <rect x="2" y="6" width="24" height="16" rx="2" fill="#1a5c2a" stroke="#2a8c42" stroke-width="1"/>
+      <rect x="11" y="2" width="6" height="6" rx="1" fill="#888"/>
+      <circle cx="14" cy="14" r="3" fill="#111" stroke="#333" stroke-width=".5"/>
+      <rect x="5" y="6" width="2" height="16" fill="#c8a020"/>
+      <rect x="21" y="6" width="2" height="16" fill="#c8a020"/>
+    </svg>
+    <span class="logo-pico">Pico</span><span class="logo-sim">Sim</span>
+    <span class="logo-badge">v4</span>
+  </div>
+  <div class="hdr-c">
+    <div class="status-chip"><div id="sdot"></div><span id="stxt">Ready</span></div>
+  </div>
+  <div class="hdr-btns">
+    <button id="btn-run" class="btn btn-run" onclick="toggleSim()">▶ &nbsp;Run</button>
+    <button class="btn btn-ghost" onclick="resetAll()">↺ Reset</button>
+  </div>
+</header>
+
+<main>
+  <div id="left-panel" class="left-panel">
+    <div class="resize-bar" id="resizer"></div>
+    <div class="ptabs">
+      <button class="ptab active" onclick="switchTab('code',this)">⌨ Code</button>
+      <button class="ptab" onclick="switchTab('libs',this)">📦 Libraries</button>
+    </div>
+    <div id="tab-code" class="pcontent">
+      <div id="editor-wrap"><textarea id="editor"></textarea></div>
+      <div class="console-bar">
+        <div class="con-hdr"><div style="width:6px;height:6px;border-radius:50%;background:var(--text-dim)"></div>SERIAL CONSOLE<button class="con-clr" onclick="clearCon()">Clear</button></div>
+        <div id="con-out"></div>
+      </div>
+    </div>
+    <div id="tab-libs" class="pcontent hidden">
+      <div class="libs-wrap" id="libs-wrap"></div>
+    </div>
+  </div>
+
+  <div class="right-panel">
+    <div class="toolbar">
+      <span class="tb-lbl">Component</span>
+      <select id="comp-select" class="comp-select">
+        <option value="">— Select a component —</option>
+        <optgroup label="Output">
+          <option value="led">💡  LED</option>
+          <option value="buzzer">🔔  Active Buzzer</option>
+          <option value="servo">⚙️  SG90 Servo Motor (PWM)</option>
+          <option value="neopixel">🌈  NeoPixel WS2812B RGB LED</option>
+          <option value="lcd">🖥️  I2C LCD Display 16×2</option>
+        </optgroup>
+        <optgroup label="Input">
+          <option value="button">🔘  Push Button</option>
+          <option value="potentiometer">🎚️  Potentiometer (ADC)</option>
+        </optgroup>
+        <optgroup label="Sensor">
+          <option value="dht22">🌡️  DHT22 Temp + Humidity</option>
+          <option value="hcsr04">📡  HC-SR04 Ultrasonic Distance</option>
+        </optgroup>
+      </select>
+      <button class="tbtn tbtn-add" onclick="addSelectedComp()">＋ Add</button>
+      <div class="tb-sep"></div>
+      <span class="tb-lbl">Wire</span>
+      <div class="wcols" id="wcols">
+        <div class="wcol sel" style="background:#00e87a" data-c="#00e87a" title="Signal (green)"></div>
+        <div class="wcol" style="background:#ff3355" data-c="#ff3355" title="Power (red)"></div>
+        <div class="wcol" style="background:#666" data-c="#666" title="Ground (black)"></div>
+        <div class="wcol" style="background:#00aaff" data-c="#00aaff" title="Data (blue)"></div>
+        <div class="wcol" style="background:#ff9900" data-c="#ff9900" title="PWM (orange)"></div>
+        <div class="wcol" style="background:#cc88ff" data-c="#cc88ff" title="Custom (purple)"></div>
+      </div>
+      <div class="tb-sep"></div>
+      <div style="display:flex;gap:3px;align-items:center;">
+        <button class="zbtn" onclick="zoom(-0.15)">−</button>
+        <span id="zlvl">100%</span>
+        <button class="zbtn" onclick="zoom(0.15)">+</button>
+        <button class="zbtn" onclick="resetView()" title="Fit view">⊡</button>
+      </div>
+      <div class="tb-sep"></div>
+      <button class="tbtn tbtn-del" onclick="deleteSel()">🗑 Delete</button>
+      <button class="tbtn" onclick="clearWires()">✕ Wires</button>
+    </div>
+
+    <svg id="pg" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="fg-g" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="fg-y" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="fg-b" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="fg-r" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <filter id="fg-p" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <radialGradient id="lg-y" cx="50%" cy="40%"><stop offset="0%" stop-color="#fff8a0"/><stop offset="60%" stop-color="#ffd060"/><stop offset="100%" stop-color="#cc8800"/></radialGradient>
+        <radialGradient id="lg-r" cx="50%" cy="40%"><stop offset="0%" stop-color="#ffaaaa"/><stop offset="60%" stop-color="#ff3355"/><stop offset="100%" stop-color="#aa0022"/></radialGradient>
+        <radialGradient id="lg-g" cx="50%" cy="40%"><stop offset="0%" stop-color="#aaffd0"/><stop offset="60%" stop-color="#00e87a"/><stop offset="100%" stop-color="#006630"/></radialGradient>
+        <radialGradient id="lg-b" cx="50%" cy="40%"><stop offset="0%" stop-color="#aaddff"/><stop offset="60%" stop-color="#00aaff"/><stop offset="100%" stop-color="#0044aa"/></radialGradient>
+        <radialGradient id="lg-w" cx="50%" cy="40%"><stop offset="0%" stop-color="#ffffff"/><stop offset="60%" stop-color="#ddeeff"/><stop offset="100%" stop-color="#9abacc"/></radialGradient>
+      </defs>
+      <g id="vp"><!-- viewport group: zoom+pan transform applied here -->
+        <g id="wires-layer"></g>
+        <g id="pico-layer"></g>
+        <g id="comps-layer"></g>
+        <!-- temp wire and snap indicator are INSIDE vp so they inherit transform -->
+        <path id="twire" class="twire" stroke="#00e87a" stroke-dasharray="8,5" d="" opacity="0"/>
+        <circle id="snap" r="9" fill="none" stroke="#fff" stroke-width="1.5" stroke-dasharray="4,3" opacity="0"/>
+      </g>
+    </svg>
+
+    <div class="hint-bar" id="hint">Click any pin to complete the wire · ESC to cancel</div>
+
+    <!-- ── Sensor Controls Panel ── -->
+    <div id="sensor-panel">
+      <div class="sp-hdr" onclick="toggleSP()">
+        <span class="sp-hdr-icon">🎛</span> Sensor Controls
+        <span class="sp-toggle" id="sp-toggle">▾</span>
+      </div>
+      <div class="sp-body" id="sp-body"></div>
+    </div>
+
+    <div class="infobar">
+      <span id="imode">Mode: <b>Select</b></span>
+      <span>Wires: <b id="iwires">0</b></span>
+      <span>Components: <b id="icomps">0</b></span>
+      <span id="isel">Selected: <b>None</b></span>
+      <span style="margin-left:auto;color:#1c2a40">Click pin→pin to wire · Scroll to zoom · Drag empty space to pan</span>
+    </div>
+  </div>
+</main>
+
+<div id="ptt"><div class="pt1" id="pt1"></div><div class="pt2" id="pt2"></div></div>
+<div id="ctxm">
+  <div class="ci" id="ctx-code" onclick="ctxCode()">⌨ Insert Code Snippet</div>
+  <div class="csep"></div>
+  <div class="ci danger" onclick="ctxDel()">🗑 Delete</div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

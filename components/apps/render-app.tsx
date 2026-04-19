@@ -2,12 +2,14 @@
 
 import type { ReactNode } from "react";
 
+import type { HtmlGameAppId } from "@/lib/game-catalog";
 import { AppId } from "@/types/os";
 
 import { isPiOsPageApp } from "@/lib/pi-apps";
 import { BrowserApp } from "./browser-app";
 import { CalculatorApp } from "./calculator-app";
 import { DocumentViewerApp } from "./document-viewer-app";
+import { ExternalFolderApp } from "./external-folder-app";
 import { FileManagerApp } from "./file-manager-app";
 import { GameCenterApp } from "./game-center-app";
 import { HtmlGameApp } from "./html-game-app";
@@ -26,91 +28,77 @@ import { TextEditorApp } from "./text-editor-app";
 import { UtilityToolApp } from "./utility-tool-app";
 import { VsCodeLiteApp } from "./vscode-lite-app";
 
-export function RenderApp({ appId }: { appId: AppId }) {
-  let appNode: ReactNode = null;
+const HTML_GAME_APP_ID_SET = new Set<HtmlGameAppId>([
+  "memory-tile",
+  "neon-rush",
+  "pi-piano-tiles",
+  "pie-ninja",
+  "riddles",
+  "whispering-shadows",
+]);
 
+function isHtmlGameAppId(appId: AppId): appId is HtmlGameAppId {
+  return HTML_GAME_APP_ID_SET.has(appId as HtmlGameAppId);
+}
+
+const APP_RENDERERS: Partial<Record<AppId, () => ReactNode>> = {
+  terminal: () => <TerminalApp />,
+  files: () => <FileManagerApp />,
+  browser: () => <BrowserApp />,
+  settings: () => <SettingsApp />,
+  vscode: () => <VsCodeLiteApp />,
+  "text-editor": () => <TextEditorApp />,
+  "document-viewer": () => <DocumentViewerApp />,
+  "media-player": () => <MediaPlayerApp />,
+  "image-viewer": () => <ImageViewerApp />,
+  gamepi: () => <GameCenterApp />,
+  "pi-snake": () => <PiSnakeApp />,
+  "slice-the-pie": () => <SliceThePieApp />,
+  "pi-defender": () => <PiDefenderApp />,
+  calculator: () => <CalculatorApp />,
+  archiver: () => <UtilityToolApp mode="archiver" />,
+  "menu-editor": () => <UtilityToolApp mode="menu-editor" />,
+  diagnostics: () => <UtilityToolApp mode="diagnostics" />,
+  imager: () => <UtilityToolApp mode="imager" />,
+  "sd-card-copier": () => <UtilityToolApp mode="sd-card-copier" />,
+  "task-manager": () => <TaskManagerApp />,
+  "pico-playground": () => (
+    <ExternalFolderApp
+      title="Pico Playground"
+      src="/api/static-app/pico-playground/index.html"
+    />
+  ),
+  "raspberry-pi-5-simulator": () => (
+    <ExternalFolderApp
+      title="Raspberry Pi 5 Simulator"
+      src="/api/static-app/raspberry-pi-5-simulator/index.html"
+    />
+  ),
+  "run-dialog": () => <RunDialogApp />,
+  "shutdown-dialog": () => <ShutdownDialogApp />,
+};
+
+export function RenderApp({ appId }: { appId: AppId }) {
   if (isPiOsPageApp(appId)) {
-    appNode = <OsPageApp appId={appId} />;
-  } else {
-    switch (appId) {
-      case "terminal":
-        appNode = <TerminalApp />;
-        break;
-      case "files":
-        appNode = <FileManagerApp />;
-        break;
-      case "browser":
-        appNode = <BrowserApp />;
-        break;
-      case "settings":
-        appNode = <SettingsApp />;
-        break;
-      case "vscode":
-        appNode = <VsCodeLiteApp />;
-        break;
-      case "text-editor":
-        appNode = <TextEditorApp />;
-        break;
-      case "document-viewer":
-        appNode = <DocumentViewerApp />;
-        break;
-      case "media-player":
-        appNode = <MediaPlayerApp />;
-        break;
-      case "image-viewer":
-        appNode = <ImageViewerApp />;
-        break;
-      case "gamepi":
-        appNode = <GameCenterApp />;
-        break;
-      case "memory-tile":
-      case "neon-rush":
-      case "pi-piano-tiles":
-      case "pie-ninja":
-      case "riddles":
-      case "whispering-shadows":
-        appNode = <HtmlGameApp appId={appId} />;
-        break;
-      case "pi-snake":
-        appNode = <PiSnakeApp />;
-        break;
-      case "slice-the-pie":
-        appNode = <SliceThePieApp />;
-        break;
-      case "pi-defender":
-        appNode = <PiDefenderApp />;
-        break;
-      case "calculator":
-        appNode = <CalculatorApp />;
-        break;
-      case "archiver":
-        appNode = <UtilityToolApp mode="archiver" />;
-        break;
-      case "menu-editor":
-        appNode = <UtilityToolApp mode="menu-editor" />;
-        break;
-      case "diagnostics":
-        appNode = <UtilityToolApp mode="diagnostics" />;
-        break;
-      case "imager":
-        appNode = <UtilityToolApp mode="imager" />;
-        break;
-      case "sd-card-copier":
-        appNode = <UtilityToolApp mode="sd-card-copier" />;
-        break;
-      case "task-manager":
-        appNode = <TaskManagerApp />;
-        break;
-      case "run-dialog":
-        appNode = <RunDialogApp />;
-        break;
-      case "shutdown-dialog":
-        appNode = <ShutdownDialogApp />;
-        break;
-      default:
-        appNode = null;
-    }
+    return (
+      <div className="app-window-content h-full min-h-0 min-w-0 overflow-hidden">
+        <OsPageApp appId={appId} />
+      </div>
+    );
   }
 
-  return <div className="app-window-content h-full min-h-0 min-w-0 overflow-hidden">{appNode}</div>;
+  if (isHtmlGameAppId(appId)) {
+    return (
+      <div className="app-window-content h-full min-h-0 min-w-0 overflow-hidden">
+        <HtmlGameApp appId={appId} />
+      </div>
+    );
+  }
+
+  const appNode = APP_RENDERERS[appId]?.() ?? null;
+  return (
+    <div className="app-window-content h-full min-h-0 min-w-0 overflow-hidden">
+      {appNode}
+    </div>
+  );
 }

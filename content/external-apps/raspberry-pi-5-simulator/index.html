@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raspberry Pi 5 — Hyper-Detail 3D</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=DM+Sans:wght@300;400;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#c6f135;--g2:#35f1a8;--bg:#070a08;
+  --panel:rgba(8,14,10,0.94);--text:#dceede;--muted:#5d7a65;
+}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--text);
+  font-family:'DM Sans',sans-serif;overflow:hidden}
+#wrap{position:fixed;inset:0;
+  background:radial-gradient(ellipse at 35% 25%,#0c1e10 0%,#060909 55%,#030405 100%)}
+canvas{display:block;width:100%!important;height:100%!important}
+
+/* ─ HEADER ─ */
+#hdr{position:fixed;top:0;left:0;right:0;
+  padding:12px 22px;display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(to bottom,rgba(7,10,8,.97),transparent);
+  z-index:100;pointer-events:none}
+#hdr h1{font-family:'Share Tech Mono',monospace;font-size:.9rem;
+  color:var(--g);letter-spacing:.1em;text-shadow:0 0 20px rgba(198,241,53,.5)}
+#hdr .sub{font-size:.58rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-top:1px}
+.chip-badge{font-family:'Share Tech Mono',monospace;font-size:.6rem;
+  color:var(--g2);border:1px solid rgba(53,241,168,.3);padding:4px 9px;
+  border-radius:2px;background:rgba(53,241,168,.06);letter-spacing:.12em}
+
+/* ─ PANELS ─ */
+.side-panel{position:fixed;top:64px;z-index:100;
+  background:var(--panel);border:1px solid rgba(198,241,53,.1);
+  border-radius:8px;padding:13px 15px;backdrop-filter:blur(14px);font-size:.64rem}
+#specs{right:18px;width:200px}
+#legend{left:18px;width:172px}
+.ph{font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--g);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:9px;
+  padding-bottom:6px;border-bottom:1px solid rgba(198,241,53,.12)}
+.sr{display:flex;justify-content:space-between;gap:6px;padding:2.5px 0;
+  border-bottom:1px solid rgba(255,255,255,.03)}
+.sl{color:var(--muted)}.sv{color:var(--text);font-weight:600;text-align:right}
+.li{display:flex;align-items:center;gap:7px;padding:3px 0;cursor:pointer;
+  transition:color .18s;color:var(--muted);font-size:.63rem}
+.li:hover{color:var(--text)}
+.ld{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ─ TOOLTIP ─ */
+#tip{position:fixed;pointer-events:none;z-index:200;opacity:0;
+  transition:opacity .18s;max-width:235px}
+#tip.on{opacity:1}
+#ti{background:var(--panel);border:1px solid rgba(198,241,53,.35);
+  border-radius:7px;padding:10px 13px;backdrop-filter:blur(18px);
+  box-shadow:0 6px 40px rgba(0,0,0,.7),0 0 1px rgba(198,241,53,.1)}
+#tt{font-size:.76rem;font-weight:600;color:var(--g);margin-bottom:3px;
+  font-family:'Share Tech Mono',monospace}
+#td{font-size:.67rem;line-height:1.55;color:#9fbfaa}
+#tg{display:inline-block;margin-top:5px;font-size:.57rem;
+  font-family:'Share Tech Mono',monospace;color:var(--g2);
+  background:rgba(53,241,168,.07);border:1px solid rgba(53,241,168,.22);
+  padding:2px 6px;border-radius:2px;letter-spacing:.1em}
+
+/* ─ CONTROLS ─ */
+#ctrl{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+  display:flex;gap:6px;z-index:100;
+  background:var(--panel);border:1px solid rgba(198,241,53,.13);
+  border-radius:30px;padding:7px 14px;backdrop-filter:blur(14px)}
+.cb{background:none;border:none;cursor:pointer;color:var(--muted);
+  font-family:'DM Sans',sans-serif;font-size:.68rem;padding:4px 11px;
+  border-radius:20px;transition:all .18s;letter-spacing:.04em}
+.cb:hover,.cb.on{background:rgba(198,241,53,.11);color:var(--g)}
+.cdiv{width:1px;background:rgba(255,255,255,.07);margin:2px 0}
+
+/* ─ HELP OVERLAY ─ */
+#help-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.75);
+  display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+#help-overlay.show{display:flex}
+#help-box{background:var(--panel);border:1px solid rgba(198,241,53,.25);border-radius:12px;
+  padding:24px 30px;max-width:380px;font-size:.72rem;line-height:1.8}
+#help-box h2{font-family:'Share Tech Mono',monospace;color:var(--g);font-size:.85rem;
+  letter-spacing:.1em;margin-bottom:12px}
+.hk{display:inline-block;background:rgba(198,241,53,.12);color:var(--g);
+  border:1px solid rgba(198,241,53,.25);border-radius:4px;padding:1px 7px;
+  font-family:'Share Tech Mono',monospace;font-size:.62rem;margin-right:6px;min-width:22px;text-align:center}
+
+/* ─ LOADING ─ */
+#ld{position:fixed;inset:0;z-index:999;background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:14px;transition:opacity .7s}
+#ld.done{opacity:0;pointer-events:none}
+#lb{width:220px;height:2px;background:rgba(198,241,53,.1);border-radius:1px;overflow:hidden}
+#lf{height:100%;width:0%;background:linear-gradient(to right,var(--g2),var(--g));
+  border-radius:1px;transition:width .25s ease;box-shadow:0 0 8px rgba(198,241,53,.6)}
+#lt{font-family:'Share Tech Mono',monospace;font-size:.63rem;color:var(--muted);letter-spacing:.13em}
+#lo{font-family:'Share Tech Mono',monospace;font-size:1.15rem;color:var(--g);
+  letter-spacing:.18em;text-shadow:0 0 30px rgba(198,241,53,.5);margin-bottom:6px}
+</style>
+</head>
+<body>
+<div id="ld">
+  <div id="lo">RASPBERRY PI 5</div>
+  <div id="lb"><div id="lf"></div></div>
+  <div id="lt">BUILDING 3D MODEL...</div>
+</div>
+
+<div id="wrap"></div>
+
+<div id="hdr">
+  <div>
+    <div id="hdr-inner" style="all:unset;display:flex;align-items:center;gap:10px">
+      <svg width="28" height="28" viewBox="0 0 28 28">
+        <circle cx="14" cy="14" r="12" fill="none" stroke="rgba(198,241,53,.35)" stroke-width="1"/>
+        <circle cx="14" cy="9" r="2.5" fill="#c6f135"/>
+        <circle cx="9" cy="18" r="2.5" fill="#c6f135"/>
+        <circle cx="19" cy="18" r="2.5" fill="#c6f135"/>
+        <line x1="14" y1="11.5" x2="9" y2="18" stroke="#c6f135" stroke-width="1"/>
+        <line x1="14" y1="11.5" x2="19" y2="18" stroke="#c6f135" stroke-width="1"/>
+        <line x1="9" y1="18" x2="19" y2="18" stroke="#c6f135" stroke-width="1"/>
+      </svg>
+      <div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:.88rem;color:#c6f135;letter-spacing:.1em;text-shadow:0 0 20px rgba(198,241,53,.5)">RASPBERRY PI 5</div>
+        <div style="font-size:.57rem;color:#5d7a65;letter-spacing:.12em;text-transform:uppercase">Hyper-Detail 3D Model · r128</div>
+      </div>
+    </div>
+  </div>
+  <div class="chip-badge">BCM2712 · QUAD-A76 · 2.4GHz</div>
+</div>
+
+<div class="side-panel" id="specs">
+  <div class="ph">Specifications</div>
+  <div class="sr"><span class="sl">SoC</span><span class="sv">BCM2712</span></div>
+  <div class="sr"><span class="sl">CPU</span><span class="sv">4× Cortex-A76</span></div>
+  <div class="sr"><span class="sl">Clock</span><span class="sv">2.4 GHz</span></div>
+  <div class="sr"><span class="sl">GPU</span><span class="sv">VideoCore VII</span></div>
+  <div class="sr"><span class="sl">RAM</span><span class="sv">4 / 8 GB</span></div>
+  <div class="sr"><span class="sl">RAM type</span><span class="sv">LPDDR4X</span></div>
+  <div class="sr"><span class="sl">USB 3.0</span><span class="sv">2× (via RP1)</span></div>
+  <div class="sr"><span class="sl">USB 2.0</span><span class="sv">2× ports</span></div>
+  <div class="sr"><span class="sl">Ethernet</span><span class="sv">Gigabit</span></div>
+  <div class="sr"><span class="sl">GPIO</span><span class="sv">40-pin HAT+</span></div>
+  <div class="sr"><span class="sl">HDMI</span><span class="sv">2× Micro</span></div>
+  <div class="sr"><span class="sl">PCIe</span><span class="sv">Gen 2 ×1</span></div>
+  <div class="sr"><span class="sl">South bridge</span><span class="sv">RP1</span></div>
+  <div class="sr"><span class="sl">PCB</span><span class="sv">85 × 56 mm</span></div>
+  <div class="sr"><span class="sl">Power</span><span class="sv">5 V / 5 A USB-C</span></div>
+</div>
+
+<div class="side-panel" id="legend">
+  <div class="ph">Components</div>
+  <div class="li"><div class="ld" style="background:#a08820"></div>BCM2712 CPU</div>
+  <div class="li"><div class="ld" style="background:#14145a"></div>LPDDR4X RAM</div>
+  <div class="li"><div class="ld" style="background:#0d1a28"></div>RP1 South Bridge</div>
+  <div class="li"><div class="ld" style="background:#b8b8b0"></div>GPIO 40-pin</div>
+  <div class="li"><div class="ld" style="background:#1122aa"></div>USB 3.0 × 2</div>
+  <div class="li"><div class="ld" style="background:#222222"></div>USB 2.0 × 2</div>
+  <div class="li"><div class="ld" style="background:#888888"></div>Ethernet GbE</div>
+  <div class="li"><div class="ld" style="background:#1a1a1a"></div>Micro-HDMI × 2</div>
+  <div class="li"><div class="ld" style="background:#333333"></div>USB-C Power</div>
+  <div class="li"><div class="ld" style="background:#e8e8e0"></div>PCIe FPC</div>
+  <div class="li"><div class="ld" style="background:#1a3822"></div>Dialog PMIC</div>
+  <div class="li"><div class="ld" style="background:#c6f135"></div>Mounting Holes</div>
+  <div class="li"><div class="ld" style="background:#4488cc"></div>Wi-Fi / BT</div>
+  <div class="li"><div class="ld" style="background:#ff4444"></div>Power Button</div>
+</div>
+
+<!-- Help Overlay -->
+<div id="help-overlay">
+  <div id="help-box">
+    <h2>⌨ KEYBOARD SHORTCUTS</h2>
+    <div><span class="hk">L</span> Toggle floating labels</div>
+    <div><span class="hk">W</span> Toggle wireframe</div>
+    <div><span class="hk">X</span> Toggle X-Ray mode</div>
+    <div><span class="hk">E</span> Toggle explode view</div>
+    <div><span class="hk">A</span> Toggle auto-rotate</div>
+    <div><span class="hk">R</span> Reset camera</div>
+    <div><span class="hk">H</span> Toggle this help</div>
+    <div style="margin-top:10px;color:var(--muted);font-size:.6rem">
+      🖱 Left-drag: orbit · Right-drag: pan · Scroll: zoom<br>
+      📱 1-finger: orbit · 2-finger pinch: zoom
+    </div>
+    <div style="margin-top:12px;text-align:center">
+      <button class="cb" style="border:1px solid rgba(198,241,53,.3);padding:6px 18px" onclick="document.getElementById('help-overlay').classList.remove('show')">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="tip"><div id="ti">
+  <div id="tt">–</div>
+  <div id="td">–</div>
+  <div id="tg">–</div>
+</div></div>
+
+<div id="ctrl">
+  <button class="cb" onclick="resetCam()">⟳ Reset</button>
+  <div class="cdiv"></div>
+  <button class="cb" onclick="setV('top')">Top</button>
+  <button class="cb" onclick="setV('iso')">Iso</button>
+  <button class="cb" onclick="setV('front')">Front</button>
+  <button class="cb" onclick="setV('back')">Back</button>
+  <div class="cdiv"></div>
+  <button class="cb" id="wBtn" onclick="toggleWire()">Wire</button>
+  <button class="cb" id="xBtn" onclick="toggleXray()">X-Ray</button>
+  <button class="cb" id="exBtn" onclick="toggleExplode()">Explode</button>
+  <button class="cb" id="lBtn" onclick="toggleLabels()">Labels</button>
+  <button class="cb" id="auBtn" onclick="toggleAuto()">Auto ▶</button>
+  <div class="cdiv"></div>
+  <button class="cb" onclick="document.getElementById('help-overlay').classList.toggle('show')">?</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ════════════════════════════════════════
+   RASPBERRY PI 5 — HYPER-DETAIL 3D MODEL
+   COMPLETE & FIXED VERSION
+   ════════════════════════════════════════ */
+
+const wrap = document.getElementById('wrap');
+const scene = new THREE.Scene();
+const renderer = new THREE.WebGLRenderer({antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2.5));
+renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.physicallyCorrectLights = true;
+renderer.outputEncoding = THREE.sRGBEncoding;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.3;
+wrap.appendChild(renderer.domElement);
+
+const camera = new THREE.PerspectiveCamera(40, wrap.clientWidth/wrap.clientHeight, 0.005, 10);
+camera.position.set(0.11, 0.10, 0.18);
+
+// ─ Orbit Controls ─────────────────────────────────────────────
+const orb = (()=>{
+  const o={
+    target:new THREE.Vector3(),
+    _s:new THREE.Spherical(),_sd:new THREE.Spherical(),
+    _scale:1,_pan:new THREE.Vector3(),
+    _dn:false,_btn:-1,_lm:new THREE.Vector2()
+  };
+  const off = camera.position.clone().sub(o.target);
+  o._s.setFromVector3(off);
+  const el = renderer.domElement;
+  el.addEventListener('mousedown',e=>{o._dn=true;o._btn=e.button;o._lm.set(e.clientX,e.clientY)});
+  window.addEventListener('mouseup',()=>o._dn=false);
+  window.addEventListener('mousemove',e=>{
+    if(!o._dn)return;
+    const dx=e.clientX-o._lm.x, dy=e.clientY-o._lm.y;
+    o._lm.set(e.clientX,e.clientY);
+    if(o._btn===0){o._sd.theta-=dx*.0055;o._sd.phi-=dy*.0055}
+    else if(o._btn===2){
+      const sp=.00035;
+      o._pan.add(new THREE.Vector3().setFromMatrixColumn(camera.matrix,0).multiplyScalar(-dx*sp));
+      o._pan.add(new THREE.Vector3().setFromMatrixColumn(camera.matrix,1).multiplyScalar(dy*sp));
+    }
+  });
+  el.addEventListener('wheel',e=>{e.preventDefault();o._scale*=e.deltaY>0?1.09:.91;o._scale=Math.max(.08,Math.min(12,o._scale))},{passive:false});
+  el.addEventListener('contextmenu',e=>e.preventDefault());
+  // Touch controls
+  let _td=[],_pd=0,_pc=new THREE.Vector2();
+  el.addEventListener('touchstart',e=>{
+    e.preventDefault();
+    _td=Array.from(e.touches);
+    if(_td.length===1){
+      o._dn=true;o._btn=0;o._lm.set(_td[0].clientX,_td[0].clientY);
+    } else if(_td.length===2){
+      o._dn=false;
+      _pd=Math.hypot(_td[0].clientX-_td[1].clientX,_td[0].clientY-_td[1].clientY);
+      _pc.set((_td[0].clientX+_td[1].clientX)/2,(_td[0].clientY+_td[1].clientY)/2);
+    }
+  },{passive:false});
+  el.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    const t=Array.from(e.touches);
+    if(t.length===1&&o._dn){
+      const dx=t[0].clientX-o._lm.x,dy=t[0].clientY-o._lm.y;
+      o._lm.set(t[0].clientX,t[0].clientY);
+      o._sd.theta-=dx*.0055;o._sd.phi-=dy*.0055;
+    } else if(t.length===2){
+      const d=Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+      o._scale*=_pd/d;o._scale=Math.max(.08,Math.min(12,o._scale));
+      _pd=d;
+      // Two-finger pan
+      const nc=new THREE.Vector2((t[0].clientX+t[1].clientX)/2,(t[0].clientY+t[1].clientY)/2);
+      const pdx=nc.x-_pc.x, pdy=nc.y-_pc.y;
+      _pc.copy(nc);
+      const sp=.00035;
+      o._pan.add(new THREE.Vector3().setFromMatrixColumn(camera.matrix,0).multiplyScalar(-pdx*sp));
+      o._pan.add(new THREE.Vector3().setFromMatrixColumn(camera.matrix,1).multiplyScalar(pdy*sp));
+    }
+  },{passive:false});
+  el.addEventListener('touchend',e=>{
+    e.preventDefault();
+    if(e.touches.length===0) o._dn=false;
+  },{passive:false});
+
+  o.update=function(){
+    o._s.theta+=o._sd.theta; o._s.phi+=o._sd.phi;
+    o._s.phi=Math.max(.04,Math.min(Math.PI-.04,o._s.phi));
+    o._s.radius*=o._scale; o._s.radius=Math.max(.035,Math.min(.5,o._s.radius));
+    o._scale=1;
+    o._sd.theta*=.92; o._sd.phi*=.92;
+    o.target.add(o._pan); o._pan.multiplyScalar(.92);
+    camera.position.copy(o.target).add(new THREE.Vector3().setFromSpherical(o._s));
+    camera.lookAt(o.target);
+  };
+  return o;
+})();
+
+// ─ Lighting ───────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xffffff,.35));
+
+const sun = new THREE.DirectionalLight(0xfffbe8, 3.0);
+sun.position.set(.3,.55,.25); sun.castShadow=true;
+sun.shadow.mapSize.set(4096,4096);
+sun.shadow.camera.near=.001; sun.shadow.camera.far=2;
+['left','right','top','bottom'].forEach((k,i)=>sun.shadow.camera[k]=[-0.17,0.17,0.12,-0.12][i]);
+scene.add(sun);
+
+const fill = new THREE.DirectionalLight(0x8ab4ff,.9); fill.position.set(-.4,.2,-.25); scene.add(fill);
+const rim  = new THREE.DirectionalLight(0xc6f135,.5); rim.position.set(0,.05,-.4); scene.add(rim);
+const bot  = new THREE.DirectionalLight(0x204030,.4); bot.position.set(0,-.5,0); scene.add(bot);
+const pt1  = new THREE.PointLight(0x35f1a8,.8,.35); pt1.position.set(.04,.07,.03); scene.add(pt1);
+const pt2  = new THREE.PointLight(0xc6f135,.5,.3);  pt2.position.set(-.04,.05,-.03); scene.add(pt2);
+
+// ─ State ──────────────────────────────────────────────────────
+const hotspots=[], origPos=new Map();
+let wireMode=false, xrayMode=false, explodeMode=false, autoRotate=false;
+let explodeAmt=0, explodeTgt2=0, animT=0;
+
+// ─ PCB Canvas Textures ────────────────────────────────────────
+function makePCBTop(){
+  const TW=2040,TH=1344;
+  const cv=document.createElement('canvas'); cv.width=TW; cv.height=TH;
+  const c=cv.getContext('2d');
+  const mm=24;
+  const px=(x)=>(x+42.5)*mm;
+  const pz=(z)=>(z+28)*mm;
+
+  c.fillStyle='#1e6b38'; c.fillRect(0,0,TW,TH);
+
+  c.fillStyle='rgba(0,25,8,.18)';
+  c.fillRect(px(-42.5),pz(-28),4*mm,TH);
+  c.fillRect(TW-4*mm,pz(-28),4*mm,TH);
+  c.fillRect(0,pz(-28),TW,4*mm);
+  c.fillRect(0,TH-4*mm,TW,4*mm);
+  [[[px(-30),pz(-20)],[12*mm,10*mm]],
+   [[px(10),pz(10)],[18*mm,12*mm]],
+   [[px(-5),pz(-15)],[8*mm,8*mm]]
+  ].forEach(([[x,y],[w,h]])=>{c.fillStyle='rgba(0,18,6,.12)';c.fillRect(x,y,w,h)});
+
+  c.save();
+  c.strokeStyle='rgba(0,40,12,.2)'; c.lineWidth=.6;
+  for(let x=0;x<TW;x+=9){c.beginPath();c.moveTo(x,0);c.lineTo(x,TH);c.stroke()}
+  for(let y=0;y<TH;y+=9){c.beginPath();c.moveTo(0,y);c.lineTo(TW,y);c.stroke()}
+  c.restore();
+
+  function tr(x1,z1,x2,z2,w=1.5,col='rgba(45,120,62,.6)'){
+    c.strokeStyle=col; c.lineWidth=w;
+    c.beginPath(); c.moveTo(px(x1),pz(z1)); c.lineTo(px(x2),pz(z2)); c.stroke();
+  }
+  tr(-39,26,-39,10,4.5,'rgba(55,130,65,.7)');
+  tr(-39,10,-28,10,4,'rgba(55,130,65,.7)');
+  tr(-28,10,-20,10,3.5,'rgba(55,130,65,.7)');
+  tr(-20,10,-20,2,3.5,'rgba(55,130,65,.7)');
+  tr(-20,2,-14,2,3,'rgba(55,130,65,.7)');
+  for(let i=0;i<8;i++){tr(-2,-4+i*.8,8,-8+i*.8,1.2,'rgba(40,110,55,.55)')}
+  for(let i=0;i<4;i++){tr(-40,-4+i*.6,-35,-4+i*.6,1.1,'rgba(40,110,55,.5)')}
+  for(let i=0;i<5;i++){tr(18,4+i*.5,32,-8+i*.5,1,'rgba(38,105,52,.5)')}
+  for(let i=0;i<6;i++){tr(-35+i*2.5,-22,-35+i*2.5,-18,1,'rgba(40,110,55,.45)')}
+  [[-28,0,-20,0],[-20,0,-10,-5],[-10,-5,5,-5],[5,-5,14,-8],
+   [14,-8,18,4],[18,4,18,12],[-14,15,0,18],[0,18,10,22],
+   [25,-2,32,-8],[32,-8,38,-12]].forEach(([x1,z1,x2,z2])=>tr(x1,z1,x2,z2,1));
+
+  function via(xmm,zmm,r=2.8){
+    c.fillStyle='#c8a028';
+    c.beginPath();c.arc(px(xmm),pz(zmm),r,0,Math.PI*2);c.fill();
+    c.fillStyle='#060d08';
+    c.beginPath();c.arc(px(xmm),pz(zmm),r*.48,0,Math.PI*2);c.fill();
+  }
+  for(let r=0;r<4;r++)for(let col=0;col<6;col++) via(-24+col*1.6,-14+r*1.6,2.5);
+  for(let r=0;r<3;r++)for(let col=0;col<4;col++) via(-22+col*1.5,7+r*1.5,2.5);
+  for(let r=0;r<3;r++)for(let col=0;col<4;col++) via(9+col*1.5,-17+r*1.5,2.5);
+  for(let r=0;r<4;r++) via(-39,-6+r*1.4,2.2);
+  [[-30,-2],[-27,-6],[-14,10],[3,18],[19,20],[28,3],[36,-8],[8,-18],[-2,-2],
+   [-6,-14],[20,-18],[32,-18],[10,0],[-18,18],[25,17],[-30,15],[-40,5]
+  ].forEach(([x,z])=>via(x,z));
+
+  c.fillStyle='#c8a028';
+  for(let col=0;col<20;col++){
+    for(let row=0;row<2;row++){
+      const gx=px(-35+col*2.54), gy=pz(-24+row*2.54);
+      c.beginPath();c.arc(gx,gy,4,0,Math.PI*2);c.fill();
+      c.fillStyle='#070e09';c.beginPath();c.arc(gx,gy,2,0,Math.PI*2);c.fill();
+      c.fillStyle='#c8a028';
+    }
+  }
+  [[-28.5,0],[-28.5,3],[-28.5,-3],[-31,5],[-31,8],[-31,-4],
+   [3,19],[5,19],[7,19],[26,17],[26,20],[30,2],[32,2],
+   [-37,-20],[-37,-17],[-14,18],[-12,18],[-10,18],
+   [22,-20],[24,-20],[22,16],[24,16]
+  ].forEach(([x,z])=>{c.fillRect(px(x)-3.5,pz(z)-2.5,5,5);c.fillRect(px(x+1.4)-3.5,pz(z)-2.5,5,5)});
+  for(let i=0;i<7;i++){
+    c.fillRect(px(-32)+i*5-1,pz(10)-12,3,5);
+    c.fillRect(px(-32)+i*5-1,pz(14)+7,3,5);
+    c.fillRect(px(-32)-12,pz(10)+i*5-1,5,3);
+    c.fillRect(px(-24)+7,pz(10)+i*5-1,5,3);
+  }
+
+  c.fillStyle='#d4a820';
+  [[-38,21],[-36,21],[-34,21],[-32,21],[-30,21],
+   [-2,25],[0,25],[2,25],[4,25]
+  ].forEach(([x,z])=>{c.beginPath();c.arc(px(x),pz(z),3.5,0,Math.PI*2);c.fill()});
+
+  [[-38,-26],[38,-26],[38,26]].forEach(([x,z])=>{
+    c.strokeStyle='#c8a028'; c.lineWidth=2;
+    c.beginPath();c.arc(px(x),pz(z),6,0,Math.PI*2);c.stroke();
+    c.fillStyle='#c8a028';c.beginPath();c.arc(px(x),pz(z),2.2,0,Math.PI*2);c.fill();
+  });
+
+  [[-34.5,-23.5],[34.5,-23.5],[-34.5,23.5],[23.5,23.5]].forEach(([x,z])=>{
+    c.strokeStyle='#d4a822'; c.lineWidth=5;
+    c.beginPath();c.arc(px(x),pz(z),11,0,Math.PI*2);c.stroke();
+    c.fillStyle='#070e09';c.beginPath();c.arc(px(x),pz(z),5,0,Math.PI*2);c.fill();
+  });
+
+  c.fillStyle='rgba(255,255,255,.82)';
+  c.strokeStyle='rgba(255,255,255,.78)';
+
+  function silk(x1,z1,x2,z2){
+    c.strokeStyle='rgba(255,255,255,.72)'; c.lineWidth=1.4;
+    c.strokeRect(px(x1),pz(z1),(x2-x1)*mm,(z2-z1)*mm);
+  }
+  silk(-42.5,-28,-37,-21);
+  silk(27,-28,32.5,-24.5);
+  silk(-35,-8,-33,-6.5);
+  silk(-3,23.5,8.5,27);
+  silk(0,23.5,25,27);
+  [[-30,0],[-30,3],[-30,-3],[-32,5]].forEach(([x,z])=>{
+    c.fillStyle='rgba(255,255,255,.7)'; c.font='9px monospace';
+    c.fillText('+',px(x)-11,pz(z)+3);
+  });
+
+  c.fillStyle='rgba(255,255,255,.88)';
+  c.font="bold 14px 'Courier New',monospace"; c.textAlign='center';
+  c.fillText('Raspberry Pi 5',px(0),pz(27));
+
+  c.font="8px 'Courier New',monospace"; c.textAlign='center';
+  c.fillText('HAT+ GPIO INTERFACE',px(-6),pz(-27));
+
+  c.font="9px 'Courier New',monospace"; c.textAlign='left';
+  c.fillStyle='rgba(255,255,255,.8)';
+  c.fillText('MEMORY',px(11),pz(-15));
+  c.fillText('8G',px(23),pz(-11));
+  c.fillText('4G',px(23),pz(-9));
+  c.fillText('2G',px(23),pz(-7));
+  c.fillText('1G',px(23),pz(-5));
+  c.fillText('PCIe',px(-43),pz(-5));
+  c.fillText('UART',px(-3),pz(22.5));
+  c.fillText('CAM/DISP 0',px(1),pz(22.5));
+  c.fillText('CAM/DISP 1',px(18),pz(22.5));
+  c.fillText('PoE J14',px(32),pz(21));
+  c.fillText('FAN',px(28),pz(-25.2));
+  c.fillText('J15',px(28),pz(-23.5));
+
+  c.font="7px 'Courier New',monospace"; c.fillStyle='rgba(255,255,255,.5)';
+  [['U1',px(-16),pz(-8)],['U2',px(15),pz(-13)],['U3',px(20),pz(9)],
+   ['U4',px(-29),pz(7)],['J1',px(-36),pz(-27.5)],['J2',px(-26),pz(27.5)],
+   ['J3',px(-12),pz(27.5)],['J4',px(-40),pz(27.5)],
+   ['J5',px(-42),pz(-6)],['J6',px(29),pz(-27.5)],
+   ['J7',px(8),pz(22)],['J8',px(24),pz(22)],
+   ['C1',px(-27),pz(-1)],['C2',px(-27),pz(2)],['C3',px(-27),pz(-4)],
+   ['C4',px(4),pz(18)],['C5',px(6),pz(18)],
+   ['R1',px(-13),pz(17)],['R2',px(-11),pz(17)],
+   ['L1',px(-32),pz(4)],['L2',px(-32),pz(7)],['L3',px(-32),pz(-5)],
+   ['D1',px(-38),pz(20)],['D2',px(-36),pz(20)],
+   ['Y1',px(30),pz(-2)],
+  ].forEach(([lbl,x,y])=>c.fillText(lbl,x+1,y-1));
+
+  c.fillStyle='rgba(255,255,255,.45)'; c.textAlign='right';
+  c.font="7px 'Courier New',monospace";
+  c.fillText('(c) Raspberry Pi 2022',px(41),pz(27));
+  c.fillText('Made in the UK',px(41),pz(25.2));
+
+  c.fillStyle='rgba(255,255,255,.85)';
+  c.beginPath();
+  c.moveTo(px(-35)-4,pz(-27.5));
+  c.lineTo(px(-35)+6,pz(-27.5));
+  c.lineTo(px(-35)+1,pz(-23.5));
+  c.fill();
+  c.fillStyle='rgba(255,255,255,.6)';
+  c.font='8px monospace'; c.textAlign='left';
+  c.fillText('1',px(-35)-14,pz(-27));
+
+  c.fillStyle='rgba(255,255,255,.4)'; c.textAlign='left';
+  c.font='7px monospace';
+  c.fillText('REV 1.0',px(-42.5)+3,pz(27));
+
+  function rpiLogo(lx,lz,scale){
+    const bx=px(lx), by=pz(lz), s=scale*mm*.9;
+    c.fillStyle='rgba(255,255,255,.28)';
+    c.beginPath();c.ellipse(bx,by,s*.7,s*.7,0,0,Math.PI*2);c.fill();
+    c.fillStyle='rgba(255,255,255,.35)';
+    c.beginPath();c.ellipse(bx-s*.45,by-s*.65,s*.22,s*.38,-.4,0,Math.PI*2);c.fill();
+    c.beginPath();c.ellipse(bx+s*.45,by-s*.65,s*.22,s*.38,.4,0,Math.PI*2);c.fill();
+    c.beginPath();c.ellipse(bx,by-s*.82,s*.22,s*.38,0,0,Math.PI*2);c.fill();
+    c.fillStyle='#1e6b38';
+    c.beginPath();c.ellipse(bx,by+s*.3,s*.35,s*.5,0,0,Math.PI*2);c.fill();
+  }
+  rpiLogo(-25,0,1.4);
+
+  c.strokeStyle='rgba(255,255,255,.6)'; c.lineWidth=1.2;
+  c.strokeRect(px(27.5),pz(-3.5),3*mm,2.5*mm);
+
+  return new THREE.CanvasTexture(cv);
+}
+
+function makePCBBottom(){
+  const TW=2040,TH=1344;
+  const cv=document.createElement('canvas'); cv.width=TW; cv.height=TH;
+  const c=cv.getContext('2d');
+  const mm=24;
+  const px=(x)=>(x+42.5)*mm, pz=(z)=>(z+28)*mm;
+  c.fillStyle='#1a5e30'; c.fillRect(0,0,TW,TH);
+  c.fillStyle='rgba(0,15,5,.15)';
+  for(let i=0;i<TW;i+=10)for(let j=0;j<TH;j+=10) if((i+j)%20===0) c.fillRect(i,j,10,10);
+  c.strokeStyle='rgba(255,255,255,.6)'; c.lineWidth=1.5;
+  c.strokeRect(px(20),pz(12),16*mm,11*mm);
+  c.fillStyle='rgba(255,255,255,.5)'; c.font='9px monospace'; c.textAlign='center';
+  c.fillText('microSD',px(28),pz(17));
+  c.fillStyle='#c8a028';
+  for(let i=0;i<5;i++)for(let j=0;j<3;j++){
+    c.fillRect(px(-15+i*3),pz(-10+j*3)-2,4,4);
+  }
+  c.fillStyle='rgba(255,255,255,.45)'; c.font='7px monospace';
+  c.textAlign='right';
+  c.fillText('(c) Raspberry Pi 2022',px(41),pz(27));
+  return new THREE.CanvasTexture(cv);
+}
+
+/* ─ CHIP TEXTURES ──────────────────────────────────────────── */
+function makeCPUTex(){
+  const cv=document.createElement('canvas'); cv.width=512; cv.height=512;
+  const c=cv.getContext('2d');
+  for(let y=0;y<512;y++){
+    const n=Math.sin(y*.08)*.03+Math.random()*.12;
+    const v=Math.floor((148+n*60)*(.88+Math.random()*.14));
+    c.fillStyle=`rgb(${v},${Math.floor(v*.97)},${Math.floor(v*.92)})`;
+    c.fillRect(0,y,512,1);
+  }
+  c.strokeStyle='rgba(255,255,255,.04)'; c.lineWidth=.5;
+  for(let x=0;x<512;x+=4){c.beginPath();c.moveTo(x,0);c.lineTo(x,512);c.stroke()}
+  const gr=c.createLinearGradient(0,0,30,0);
+  gr.addColorStop(0,'rgba(255,255,255,.25)');gr.addColorStop(1,'rgba(255,255,255,0)');
+  c.fillStyle=gr;c.fillRect(0,0,30,512);
+  const gr2=c.createLinearGradient(482,0,512,0);
+  gr2.addColorStop(0,'rgba(255,255,255,0)');gr2.addColorStop(1,'rgba(255,255,255,.15)');
+  c.fillStyle=gr2;c.fillRect(482,0,30,512);
+  c.fillStyle='rgba(15,12,8,.88)';
+  c.shadowColor='rgba(0,0,0,.4)'; c.shadowBlur=2;
+  c.font='bold 44px monospace'; c.textAlign='center';
+  c.fillText('BROADCOM',256,145);
+  c.font='34px monospace';
+  c.fillText('BCM2712',256,200);
+  c.font='21px monospace'; c.fillStyle='rgba(15,12,8,.72)';
+  c.fillText('27122PKB00C1T',256,248);
+  c.fillText('TN2320 P31',256,280);
+  c.fillText('N518-01 T3',256,310);
+  c.shadowBlur=0;
+  return new THREE.CanvasTexture(cv);
+}
+
+function makeRAMTex(){
+  const cv=document.createElement('canvas'); cv.width=512; cv.height=448;
+  const c=cv.getContext('2d');
+  c.fillStyle='#0b0b20'; c.fillRect(0,0,512,448);
+  c.fillStyle='rgba(255,255,255,.015)';
+  for(let i=0;i<200;i++) c.fillRect(Math.random()*512,Math.random()*448,Math.random()*20+2,1);
+  c.fillStyle='rgba(255,255,255,.92)'; c.textAlign='center';
+  c.font='bold 28px monospace'; c.fillText('MEMORY',256,72);
+  const opts=['8G','4G','2G','1G'];
+  opts.forEach((t,i)=>{
+    const bx=60+i*100;
+    c.strokeStyle='rgba(255,255,255,.55)'; c.lineWidth=1.5;
+    c.strokeRect(bx,90,22,22);
+    if(i===1){c.fillStyle='rgba(255,255,255,.85)';c.fillRect(bx+3,93,16,16)}
+    c.fillStyle=i===1?'#c6f135':'rgba(255,255,255,.65)';
+    c.font='bold 22px monospace'; c.fillText(t,bx+11,88);
+  });
+  c.fillStyle='rgba(255,255,255,.75)';
+  c.font='17px monospace'; c.fillText('D8CLN 3C77',256,152);
+  c.font='15px monospace'; c.fillStyle='rgba(255,255,255,.55)';
+  c.fillText('LPDDR4X-4267 SDRAM',256,178);
+  c.fillText('PoP on BCM2712',256,200);
+  c.fillStyle='rgba(255,255,255,.22)';
+  c.beginPath();c.ellipse(256,310,22,22,0,0,Math.PI*2);c.fill();
+  c.fillStyle='#0b0b20';
+  c.beginPath();c.ellipse(256,317,10,12,0,0,Math.PI*2);c.fill();
+  c.fillStyle='rgba(255,255,255,.22)';
+  c.beginPath();c.ellipse(242,293,7,13,-.35,0,Math.PI*2);c.fill();
+  c.beginPath();c.ellipse(270,293,7,13,.35,0,Math.PI*2);c.fill();
+  c.beginPath();c.ellipse(256,286,7,13,0,0,Math.PI*2);c.fill();
+  c.fillStyle='rgba(255,255,255,.5)'; c.font='13px monospace';
+  c.fillText('RPM-C0  22/44',256,390); c.fillText('PDKK20.00',256,410);
+  return new THREE.CanvasTexture(cv);
+}
+
+function makeRP1Tex(){
+  const cv=document.createElement('canvas'); cv.width=420; cv.height=420;
+  const c=cv.getContext('2d');
+  c.fillStyle='#0a1018'; c.fillRect(0,0,420,420);
+  c.fillStyle='rgba(255,255,255,.025)';
+  for(let i=0;i<300;i++) c.fillRect(Math.random()*420,Math.random()*420,Math.random()*8+1,1);
+  c.fillStyle='rgba(255,255,255,.9)';
+  c.beginPath();c.arc(24,24,7,0,Math.PI*2);c.fill();
+  c.font='bold 48px monospace'; c.textAlign='center';
+  c.fillText('RP1-C0',210,120);
+  c.font='28px monospace'; c.fillStyle='rgba(255,255,255,.78)';
+  c.fillText('22/44',210,164);
+  c.fillText('PDKK22.00',210,200);
+  const lx=210,ly=300,s=24;
+  c.fillStyle='rgba(255,255,255,.45)';
+  c.beginPath();c.ellipse(lx,ly,s,s,0,0,Math.PI*2);c.fill();
+  c.fillStyle='#0a1018';
+  c.beginPath();c.ellipse(lx,ly+s*.35,s*.5,s*.6,0,0,Math.PI*2);c.fill();
+  c.fillStyle='rgba(255,255,255,.45)';
+  c.beginPath();c.ellipse(lx-s*.52,ly-s*.62,s*.26,s*.44,-.4,0,Math.PI*2);c.fill();
+  c.beginPath();c.ellipse(lx+s*.52,ly-s*.62,s*.26,s*.44,.4,0,Math.PI*2);c.fill();
+  c.beginPath();c.ellipse(lx,ly-s*.82,s*.26,s*.44,0,0,Math.PI*2);c.fill();
+  return new THREE.CanvasTexture(cv);
+}
+
+function makePMICTex(){
+  const cv=document.createElement('canvas'); cv.width=256; cv.height=256;
+  const c=cv.getContext('2d');
+  c.fillStyle='#080810'; c.fillRect(0,0,256,256);
+  c.fillStyle='rgba(255,255,255,.85)'; c.textAlign='center'; c.font='bold 18px monospace';
+  c.fillText('adialog',128,72);
+  c.font='16px monospace'; c.fillStyle='rgba(255,255,255,.7)';
+  c.fillText('DA9091',128,100); c.fillText('D 9091',128,122);
+  c.font='12px monospace'; c.fillStyle='rgba(255,255,255,.5)';
+  c.fillText('23114FAC',128,148);
+  c.fillStyle='rgba(255,255,255,.8)'; c.beginPath(); c.arc(28,28,8,0,Math.PI*2); c.fill();
+  return new THREE.CanvasTexture(cv);
+}
+
+function makeWiFiTex(){
+  const cv=document.createElement('canvas'); cv.width=256; cv.height=256;
+  const c=cv.getContext('2d');
+  c.fillStyle='#0a0e18'; c.fillRect(0,0,256,256);
+  c.fillStyle='rgba(255,255,255,.85)'; c.textAlign='center';
+  c.font='bold 16px monospace';
+  c.fillText('INFINEON',128,60);
+  c.font='14px monospace'; c.fillStyle='rgba(255,255,255,.7)';
+  c.fillText('CYW43455',128,88);
+  c.font='11px monospace'; c.fillStyle='rgba(255,255,255,.5)';
+  c.fillText('WiFi 5 + BT 5.0',128,112);
+  c.fillText('2.4/5 GHz',128,130);
+  c.fillStyle='rgba(255,255,255,.8)'; c.beginPath(); c.arc(24,24,6,0,Math.PI*2); c.fill();
+  // WiFi symbol
+  c.strokeStyle='rgba(255,255,255,.3)'; c.lineWidth=3;
+  [18,30,42].forEach(r=>{
+    c.beginPath(); c.arc(128,200,r,-Math.PI*.75,-Math.PI*.25); c.stroke();
+  });
+  c.fillStyle='rgba(255,255,255,.3)';
+  c.beginPath(); c.arc(128,200,5,0,Math.PI*2); c.fill();
+  return new THREE.CanvasTexture(cv);
+}
+
+/* ─ Materials ────────────────────────────────────────────────── */
+const PCB_TOP = makePCBTop(), PCB_BOT = makePCBBottom();
+const CPU_TEX = makeCPUTex(), RAM_TEX = makeRAMTex();
+const RP1_TEX = makeRP1Tex(), PMIC_TEX = makePMICTex();
+const WIFI_TEX = makeWiFiTex();
+
+const pcbTopMat = new THREE.MeshPhysicalMaterial({
+  map:PCB_TOP, roughness:.42, metalness:.05,
+  clearcoat:.35, clearcoatRoughness:.15, color:0x20723c
+});
+const pcbBotMat = new THREE.MeshPhysicalMaterial({
+  map:PCB_BOT, roughness:.48, metalness:.04, color:0x1c6234
+});
+const pcbEdgeMat = new THREE.MeshStandardMaterial({color:0x1a5c2e,roughness:.7,metalness:.04});
+
+function mkMat(col,rough,metal,clearcoat=0,ccroughness=.3){
+  return new THREE.MeshPhysicalMaterial({color:col,roughness:rough,metalness:metal,
+    clearcoat,clearcoatRoughness:ccroughness});
+}
+
+const MATS = {
+  cpuLid:   new THREE.MeshPhysicalMaterial({map:CPU_TEX,roughness:.18,metalness:.88,clearcoat:.4,clearcoatRoughness:.1}),
+  cpuSub:   mkMat(0x1a1a18,.35,.65),
+  ramBody:  new THREE.MeshPhysicalMaterial({map:RAM_TEX,roughness:.4,metalness:.45}),
+  rp1Body:  new THREE.MeshPhysicalMaterial({map:RP1_TEX,roughness:.38,metalness:.5}),
+  pmicBody: new THREE.MeshPhysicalMaterial({map:PMIC_TEX,roughness:.4,metalness:.45}),
+  wifiBody: new THREE.MeshPhysicalMaterial({map:WIFI_TEX,roughness:.4,metalness:.45}),
+  chipBlk:  mkMat(0x0c0c14,.35,.55),
+  metalHi:  mkMat(0xb8b8b0,.12,.92,0.3,0.1),
+  metalMid: mkMat(0x9a9890,.2,.85),
+  metalDark:mkMat(0x555550,.25,.82),
+  gold:     mkMat(0xd4a828,.12,.88,0.2,0.15),
+  usb3:     mkMat(0x1333bb,.35,.05),
+  usb2:     mkMat(0x111118,.55,.08),
+  usb2body: mkMat(0x1a1a1a,.45,.65),
+  ethShell: mkMat(0x8a8880,.18,.88,0.2,0.15),
+  hdmiShell:mkMat(0x181818,.4,.65),
+  hdmiPlug: mkMat(0x0e0e0e,.8,.05),
+  usbcShell:mkMat(0x222222,.25,.82),
+  whitePlas:mkMat(0xf5f5ec,.55,.04),
+  creamPlas:mkMat(0xe8e0c8,.58,.04),
+  brownPlas:mkMat(0x5a3c18,.52,.08),
+  blackPlas:mkMat(0x101010,.68,.06),
+  indBlk:   mkMat(0x0a0a0a,.65,.15),
+  ledGreen: new THREE.MeshStandardMaterial({color:0x00ff44,roughness:.3,metalness:.1,emissive:0x00ff44,emissiveIntensity:1.5}),
+  ledRed:   new THREE.MeshStandardMaterial({color:0xff2200,roughness:.3,metalness:.1,emissive:0xff2200,emissiveIntensity:1.2}),
+  ledOrange:new THREE.MeshStandardMaterial({color:0xff8800,roughness:.3,metalness:.1,emissive:0xff8800,emissiveIntensity:.9}),
+  xtalMet:  mkMat(0xd4d0c4,.15,.92,0.4,0.1),
+  copper:   mkMat(0xc87050,.2,.85),
+  solder:   mkMat(0xc8c8c0,.3,.75),
+  pwrBtn:   mkMat(0x888888,.3,.7),
+  pwrBtnTop:mkMat(0xcccccc,.2,.8,0.3,0.1),
+  invisible:new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}),
+};
+
+/* ─ Geometry helpers ─────────────────────────────────────────── */
+const W=.085,H=.056,T=.0016;
+const board = new THREE.Group();
+scene.add(board);
+
+function bx(w,h,d,mat,x,y,z,rx=0,ry=0,rz=0){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);
+  m.position.set(x,y,z); m.rotation.set(rx,ry,rz);
+  m.castShadow=true; m.receiveShadow=true; board.add(m); return m;
+}
+function cyl(r,h,mat,x,y,z,rx=0,rz=0,segs=16){
+  const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,segs),mat);
+  m.position.set(x,y,z); m.rotation.x=rx; m.rotation.z=rz;
+  m.castShadow=true; board.add(m); return m;
+}
+function hs(mesh,title,desc,tag){
+  mesh.userData.hs={title,desc,tag};
+  hotspots.push(mesh);
+}
+function proxy(w,h,d,x,y,z){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),MATS.invisible);
+  m.position.set(x,y,z); board.add(m); return m;
+}
+
+// ─ PCB BODY ──────────────────────────────────────────────────
+const pcbTop = bx(W,T,H, pcbTopMat, 0,0,0);
+pcbTop.receiveShadow=true;
+hs(proxy(W,.006,H, 0,0,0), 'FR4 PCB — 4-Layer', '85×56 mm green PCB. 1.6 mm FR4 fiberglass substrate with ENIG (Electroless Nickel Immersion Gold) surface finish. 4 copper layers: signal, power, ground, signal.','PCB');
+
+const pcbBot = new THREE.Mesh(new THREE.BoxGeometry(W,T,H), pcbBotMat);
+pcbBot.position.set(0,-T*1.5,0); pcbBot.castShadow=true; board.add(pcbBot);
+
+const eH=T*3;
+bx(W,eH,.001,pcbEdgeMat,0,-T*.5,H/2); bx(W,eH,.001,pcbEdgeMat,0,-T*.5,-H/2);
+bx(.001,eH,H,pcbEdgeMat, W/2,-T*.5,0); bx(.001,eH,H,pcbEdgeMat,-W/2,-T*.5,0);
+
+const holePositions=[[-0.0345,-0.0235],[0.0245,-0.0235],[-0.0345,0.0235],[0.0245,0.0235]];
+holePositions.forEach(([hx,hz])=>{
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.00165,.00075,8,24),MATS.gold);
+  ring.rotation.x=-Math.PI/2; ring.position.set(hx,T/2+.0001,hz);
+  board.add(ring);
+  cyl(.00105,.006,MATS.chipBlk, hx,-T*.5,hz);
+});
+
+// ─ GPIO HEADER ────────────────────────────────────────────────
+{
+  const housing = bx(.0508,.0048,.0058, MATS.blackPlas, -.035+.0254,.001,-.0238);
+  bx(.004,.0052,.002, MATS.metalDark, -.035+.0254,.001,-.0238-.003);
+  const gpioProxy = proxy(.0508,.007,.008, -.035+.0254,.003,-.0238);
+  hs(gpioProxy,'40-Pin GPIO (HAT+)','2×20 2.54 mm pitch through-hole header. Supports UART, SPI, I²C, I²S, PWM, and 3.3 V/5 V power pins. HAT+ backward compatible with all Pi models.','GPIO');
+  const pinGeo=new THREE.BoxGeometry(.00064,.006,.00064);
+  const pinMesh=new THREE.InstancedMesh(pinGeo, MATS.metalHi, 40);
+  const mtx=new THREE.Matrix4();
+  for(let col=0;col<20;col++){
+    for(let row=0;row<2;row++){
+      mtx.setPosition(-0.035+col*.00254, .001+.003, -.0238+row*.00254);
+      pinMesh.setMatrixAt(col*2+row, mtx);
+    }
+  }
+  pinMesh.instanceMatrix.needsUpdate=true;
+  pinMesh.castShadow=true; board.add(pinMesh);
+  bx(.0015,.0002,.0015,MATS.gold, -.035,.0025,-.026);
+}
+
+// ─ BCM2712 CPU ────────────────────────────────────────────────
+{
+  const sub=bx(.022,.0012,.022, MATS.cpuSub, -.0085,.0006,.002);
+  for(let i=0;i<10;i++){
+    const sb=new THREE.Mesh(new THREE.SphereGeometry(.0003,6,6),MATS.solder);
+    sb.position.set(-.0085-.011+i*.00244,.0005,.002-.011);
+    board.add(sb);
+    const sb2=sb.clone(); sb2.position.z=.002+.011; board.add(sb2);
+    const sb3=sb.clone(); sb3.position.set(-.0085-.011,.0005,.002-.011+i*.00244); board.add(sb3);
+    const sb4=sb.clone(); sb4.position.set(-.0085+.011,.0005,.002-.011+i*.00244); board.add(sb4);
+  }
+  const lid=bx(.0190,.0028,.0190, MATS.cpuLid, -.0085,.0019,.002);
+  [0,1].forEach(side=>{
+    bx(.0002,.0026,.0190, MATS.metalHi, -.0085+(side?.0096:-.0096),.0018,.002);
+    bx(.0190,.0026,.0002, MATS.metalHi, -.0085,.0018,.002+(side?.0096:-.0096));
+  });
+  const cpuProxy=proxy(.02,.005,.02, -.0085,.003,.002);
+  hs(cpuProxy,'BCM2712 — Main SoC','Broadcom BCM2712 system-on-chip. Quad-core Arm Cortex-A76 at 2.4 GHz with per-core 512 KB L2 + shared 2 MB L3. VideoCore VII GPU at 800 MHz. Manufactured on TSMC 16 nm FinFET.','SoC');
+}
+
+// ─ LPDDR4X RAM ────────────────────────────────────────────────
+{
+  const ramGeo=new THREE.BoxGeometry(.0140,.0022,.0130);
+  const ram=new THREE.Mesh(ramGeo, MATS.ramBody);
+  ram.position.set(.0140,.0018,-.0105); ram.castShadow=true; board.add(ram);
+  for(let i=0;i<4;i++){
+    bx(.0012,.0014,.0018, MATS.chipBlk, .0110+i*.004,.001,-.0035);
+    bx(.0012,.0014,.0018, MATS.chipBlk, .0110+i*.004,.001,-.0195);
+  }
+  hs(proxy(.016,.005,.015, .0140,.003,-.0105),'LPDDR4X — RAM','Samsung/Micron LPDDR4X SDRAM. 4 or 8 GB, 64-bit bus at 4267 MT/s. Package-on-Package (PoP) directly stacked on the BCM2712 die via the MEMORY interface.','RAM');
+}
+
+// ─ RP1 SOUTH BRIDGE ───────────────────────────────────────────
+{
+  const rp1=bx(.0115,.0020,.0115, MATS.rp1Body, .0178,.0015,.0105);
+  const leadMat=MATS.metalMid;
+  for(let i=0;i<8;i++){
+    bx(.0008,.0004,.0016, leadMat, .0120+i*.00166,.0022,.0048);
+    bx(.0008,.0004,.0016, leadMat, .0120+i*.00166,.0022,.0162);
+    bx(.0016,.0004,.0008, leadMat, .0120,.0022,.0048+i*.00166);
+    bx(.0016,.0004,.0008, leadMat, .0236,.0022,.0048+i*.00166);
+  }
+  bx(.009,.0002,.009, MATS.gold, .0178,.0001,.0105);
+  hs(proxy(.013,.005,.013, .0178,.003,.0105),'RP1 — South Bridge','Raspberry Pi\'s first in-house chip (RP1). Controls USB 3.0 (via PCIe), GbE, 2× CSI-2 camera, 2× DSI display, PWM, GPIO, and ADC. Fabricated on TSMC 40 nm.','RP1');
+}
+
+// ─ USB 3.0 PORTS ×2 ──────────────────────────────────────────
+{
+  const shellW=.0155,shellH=.0165,shellD=.0165;
+  const openW=.013,openH=.012;
+  for(let i=0;i<2;i++){
+    const yz=T/2+.006+i*(shellH+.0012);
+    const xp=W/2-.0015;
+    const shell=bx(shellD,shellH,shellW, MATS.metalMid, xp,yz,-.0130);
+    bx(shellD*.7,openH,openW*.85, MATS.usb3, xp+.001,yz,-.0130);
+    bx(shellD*.6,.003,openW*.65, new THREE.MeshStandardMaterial({color:0x1533dd,roughness:.5,metalness:.05}),
+      xp+.003,yz,-.0130);
+    for(let c=0;c<9;c++){
+      bx(.00045,.0002,.0045, MATS.gold, xp+.003-c*.00001,yz+.0015-.0001,-.0130-.0035+c*.0009);
+    }
+    bx(.0005,shellH,.0005, MATS.metalHi, xp-shellD/2+.002,yz,-.0130-shellW/2+.002);
+    bx(.0005,shellH,.0005, MATS.metalHi, xp-shellD/2+.002,yz,-.0130+shellW/2-.002);
+    if(i===0) hs(proxy(.017,shellH+.003,shellW+.003,xp,yz,-.0130),'USB 3.0 × 2 (Type-A)','SuperSpeed USB 3.0 at 5 Gbps. Blue insert distinguishes USB 3.0 from 2.0. Driven by RP1 south bridge via PCIe Gen 2. Supports USB charging.','USB3');
+  }
+}
+
+// ─ USB 2.0 PORTS ×2 ──────────────────────────────────────────
+{
+  const shellW=.0155,shellH=.0165,shellD=.0165;
+  for(let i=0;i<2;i++){
+    const yz=T/2+.006+i*(shellH+.0012);
+    const xp=W/2-.0015;
+    bx(shellD,shellH,shellW, MATS.metalDark, xp,yz,.0060);
+    bx(shellD*.7,.012,shellW*.85, MATS.usb2, xp+.001,yz,.0060);
+    bx(shellD*.6,.003,shellW*.65, MATS.blackPlas, xp+.003,yz,.0060);
+    for(let c=0;c<4;c++){
+      bx(.0005,.0002,.0045, MATS.gold, xp+.003,yz+.0015,-.0028+.0060+c*.0012);
+    }
+    if(i===0) hs(proxy(.017,shellH+.003,shellW+.003,xp,yz,.0060),'USB 2.0 × 2 (Type-A)','Hi-Speed USB 2.0 at 480 Mbps. Black insert. Also driven by RP1. Backward compatible with USB 1.1. Ideal for HID devices, cameras, and hubs.','USB2');
+  }
+}
+
+// ─ GIGABIT ETHERNET ──────────────────────────────────────────
+{
+  const ex=W/2-.0048, ez=.0210;
+  const cageW=.0155, cageH=.0148, cageD=.0230;
+  const cage=bx(cageD,cageH,cageW, MATS.ethShell, ex,T/2+.0074,ez);
+  bx(cageD*.55,.0030,cageW*.55, MATS.metalHi, ex-cageD*.08,T/2+.0148+.0015,ez);
+  bx(.002,cageH*.7,cageW*.82, MATS.blackPlas, ex+cageD/2,T/2+.0074+.001,ez);
+  const ledWin1=bx(.0006,.003,.003, MATS.ledGreen, ex+cageD/2-.001,T/2+.014,ez-cageW*.28);
+  const ledWin2=bx(.0006,.003,.003, MATS.ledOrange, ex+cageD/2-.001,T/2+.014,ez+cageW*.28);
+  for(let c=0;c<8;c++) bx(.0012,.0005,.006, MATS.gold, ex+cageD*.35,T/2+.0074-.004+c*.0012,ez);
+  bx(.004,.004,.006, MATS.creamPlas, ex+.0015,T/2+.002,ez+cageW*.5+.002);
+  bx(.001,.008,.0004, MATS.metalMid, ex-cageD/2+.001,T/2-.003,ez-cageW*.5);
+  bx(.001,.008,.0004, MATS.metalMid, ex-cageD/2+.001,T/2-.003,ez+cageW*.5);
+  hs(proxy(.025,cageH+.003,cageW+.003,ex,T/2+.0074,ez),'Gigabit Ethernet (RJ-45)','10/100/1000 Mbps auto-negotiate via RP1. TRxcom T1RG-0926HNL42 magnetics. Dual LED activity/link indicators. PoE-capable via optional HAT. IEEE 802.3.','ETH');
+}
+
+// ─ MICRO-HDMI × 2 ────────────────────────────────────────────
+{
+  const hdmiData=[
+    {x:-.0258, label:'HDMI 0 — Micro-HDMI',desc:'Micro-HDMI (Type D). Up to 4K@60 Hz. Connected to display pipe 0. Supports HDR10, HLG, and CEC control. 19-pin connector.', tag:'HDMI0'},
+    {x:-.0118, label:'HDMI 1 — Micro-HDMI',desc:'Second 4K@60 Hz output. Enables dual 4K display. Both outputs fully independent via BCM2712 PixelValve. Supports 1080p@240 Hz.', tag:'HDMI1'},
+  ];
+  hdmiData.forEach(({x,label,desc,tag})=>{
+    const hz=H/2-.0005;
+    const shell=bx(.0082,.0068,.0075, MATS.hdmiShell, x,T/2+.0034,hz);
+    bx(.0092,.002,.0080, MATS.hdmiShell, x,T/2+.001,hz+.001);
+    bx(.0072,.0042,.0035, MATS.hdmiPlug, x,T/2+.0034,hz-.0015);
+    bx(.007,.0008,.001, MATS.gold, x,T/2+.0050,hz-.003);
+    bx(.007,.0008,.001, MATS.gold, x,T/2+.0020,hz-.003);
+    bx(.0002,.006,.0002, MATS.metalHi, x-.0041,T/2+.0034,hz);
+    bx(.0002,.006,.0002, MATS.metalHi, x+.0041,T/2+.0034,hz);
+    hs(proxy(.010,.009,.008,x,T/2+.004,hz),label,desc,tag);
+  });
+}
+
+// ─ USB-C POWER ────────────────────────────────────────────────
+{
+  const pcx=-0.0388, pcz=H/2-.0005;
+  bx(.0097,.0068,.0082, MATS.usbcShell, pcx,T/2+.0034,pcz);
+  bx(.0085,.003,.0045, MATS.blackPlas, pcx,T/2+.0034,pcz-.0015);
+  bx(.007,.0018,.004, MATS.metalDark, pcx,T/2+.0034,pcz-.0015);
+  for(let r=0;r<2;r++) bx(.006,.0003,.0002*12, MATS.gold, pcx,T/2+.0030+r*.0012,pcz-.003);
+  bx(.001,.006,.001, MATS.metalHi, pcx-.005,T/2+.0034,pcz);
+  bx(.001,.006,.001, MATS.metalHi, pcx+.005,T/2+.0034,pcz);
+  hs(proxy(.012,.009,.009,pcx,T/2+.004,pcz),'USB-C Power Input (5 V)','USB Power Delivery 3.0. Requires 5 V, 5 A (25 W) for full performance. First Pi with USB-C power. Over-current protection via D9091 PMIC. Charging current negotiation.','PWR');
+}
+
+// ─ PCIe FPC CONNECTOR ─────────────────────────────────────────
+{
+  const fpx=-W/2+.003, fpz=-.0048;
+  bx(.007,.0038,.0135, MATS.creamPlas, fpx,T/2+.002,fpz);
+  bx(.0076,.0014,.0135, MATS.brownPlas, fpx,T/2+.004,fpz);
+  for(let i=0;i<12;i++) bx(.0003,.001,.0003, MATS.gold, fpx,T/2+.002,fpz-.006+i*.001);
+  hs(proxy(.009,.006,.015,fpx,T/2+.003,fpz),'PCIe 2.0 Gen 2 ×1 FPC','Single-lane PCIe Gen 2 at ~5 Gbps. First Raspberry Pi with PCIe. FPC ribbon cable connector for NVMe SSDs, AI accelerators, or GPIO expansion HATs.','PCIe');
+}
+
+// ─ CSI-2 / DSI FPC CONNECTORS ─────────────────────────────────
+{
+  const fpcData=[
+    {x:.0105,z:H/2-.003, label:'CAM/DISP 0 FPC', desc:'MIPI CSI-2/DSI 4-lane FPC connector. Supports Camera Module 3, Global Shutter Camera, or DSI displays. Up to 1.1 Gpixel/s throughput.', tag:'CSI0'},
+    {x:.0285,z:H/2-.003, label:'CAM/DISP 1 FPC', desc:'Second 4-lane MIPI CSI-2/DSI connector. Enables dual camera setups or mixed camera+display configurations simultaneously.', tag:'CSI1'},
+  ];
+  fpcData.forEach(({x,z,label,desc,tag})=>{
+    bx(.0230,.0030,.0058, MATS.creamPlas, x,T/2+.0015,z);
+    bx(.0236,.0012,.0062, MATS.brownPlas, x,T/2+.0027,z);
+    for(let i=0;i<20;i++) bx(.0005,.0008,.0002, MATS.gold, x-.011+i*.0012,T/2+.0015,z-.0025);
+    hs(proxy(.025,.005,.008,x,T/2+.002,z),label,desc,tag);
+  });
+}
+
+// ─ FAN CONNECTOR ─────────────────────────────────────────────
+{
+  const fx=.0305, fz=-.0260;
+  bx(.0054,.0045,.0035, MATS.whitePlas, fx,T/2+.0022,fz);
+  bx(.0024,.0050,.0007, MATS.whitePlas, fx-.0015,T/2+.0022,fz+.002);
+  bx(.0024,.0050,.0007, MATS.whitePlas, fx+.0015,T/2+.0022,fz+.002);
+  for(let i=0;i<4;i++) cyl(.0003,.0048, MATS.gold, fx-.0004+i*.0003,T/2+.0048+.0024,fz);
+  hs(proxy(.007,.006,.006,fx,T/2+.003,fz),'4-Pin Fan Connector','JST-SH 4-pin PWM fan header. Controls official Raspberry Pi Active Cooler. Software-controlled 25 kHz PWM. Tachometer feedback via GPIO. Thermal throttle prevention.','FAN');
+}
+
+// ─ RTC BATTERY CONNECTOR ─────────────────────────────────────
+{
+  const rtx=-.0318, rtz=-.0058;
+  bx(.0060,.0040,.0028, MATS.whitePlas, rtx,T/2+.002,rtz);
+  for(let i=0;i<2;i++) cyl(.0003,.0045,MATS.gold, rtx-.0012+i*.0024,T/2+.0022+.00225,rtz);
+  hs(proxy(.008,.005,.005,rtx,T/2+.003,rtz),'RTC Battery Connector','First Pi with on-board RTC. 2-pin connector for lithium coin cell backup. Keeps real time when unplugged. Powered by DA9091 RTC sub-circuit.','RTC');
+}
+
+// ─ DIALOG DA9091 PMIC ────────────────────────────────────────
+{
+  const pmx=-.0280, pmz=.0110;
+  const pmic=bx(.0090,.0016,.0090, MATS.pmicBody, pmx,T/2+.001,pmz);
+  for(let i=0;i<7;i++){
+    bx(.0008,.0004,.0016, MATS.metalMid, pmx-.0034+i*.00113,T/2+.0020,pmz-.0048);
+    bx(.0008,.0004,.0016, MATS.metalMid, pmx-.0034+i*.00113,T/2+.0020,pmz+.0048);
+    bx(.0016,.0004,.0008, MATS.metalMid, pmx-.0048,T/2+.0020,pmz-.0034+i*.00113);
+    bx(.0016,.0004,.0008, MATS.metalMid, pmx+.0048,T/2+.0020,pmz-.0034+i*.00113);
+  }
+  bx(.006,.0002,.006, MATS.gold, pmx,T/2+.0001,pmz);
+  hs(proxy(.011,.005,.011,pmx,T/2+.003,pmz),'Dialog DA9091 PMIC','Renesas (Dialog) DA9091 Power Management IC. Provides 3.3 V, 1.8 V, 1.1 V, and core voltage rails. Dynamic voltage scaling for CPU performance. Programmable current limits.','PMIC');
+}
+
+// ─ CRYSTAL OSCILLATOR ────────────────────────────────────────
+{
+  const xx=.0302, xz=-.0012;
+  bx(.006,.0018,.005, MATS.xtalMet, xx,T/2+.0009,xz);
+  bx(.005,.0020,.004, MATS.metalHi, xx,T/2+.001,xz);
+  bx(.0015,.001,.003, MATS.gold, xx-.003,T/2+.001,xz);
+  bx(.0015,.001,.003, MATS.gold, xx+.003,T/2+.001,xz);
+  bx(.0015,.001,.003, MATS.gold, xx-.003,T/2+.001,xz+.0001);
+  hs(proxy(.008,.004,.006,xx,T/2+.002,xz),'Crystal Oscillator (32.768 kHz)','SMD 5×3.2 mm crystal. Provides precision timing for RTC (real-time clock). Runs when main SoC is powered off, maintaining timekeeping on battery.','XTAL');
+}
+
+// ─ INDUCTORS (Power delivery) ─────────────────────────────────
+{
+  const indPos=[[-0.0318,.0052],[-0.0318,.0085],[-0.0318,-.0048],[-0.0252,-.0052]];
+  indPos.forEach(([ix,iz])=>{
+    bx(.0032,.0028,.0032, MATS.indBlk, ix,T/2+.0014,iz);
+    bx(.0034,.001,.0006, MATS.metalDark, ix,T/2+.0022,iz);
+  });
+}
+
+// ─ FERRITE BEADS ─────────────────────────────────────────────
+{
+  [[-0.0265,.0022],[-0.0265,.0060],[-0.0205,-.0182]].forEach(([fx,fz])=>{
+    bx(.0016,.0014,.003, MATS.chipBlk, fx,T/2+.0007,fz);
+  });
+}
+
+// ─ SMD CAPACITORS ────────────────────────────────────────────
+{
+  const CAP_POSITIONS=[
+    [-.0290,.0005],[-.0290,.0030],[-.0290,-.0028],[-.0305,.0048],[-.0305,.0078],[-.0305,-.0042],
+    [.0195,.0010],[.0215,.0010],[.0225,.0050],[.0195,.0200],
+    [.0110,-.0038],[.0148,-.0038],[.0185,-.0038],[.0110,-.0195],
+    [.0030,.0188],[.0055,.0188],[.0248,.0165],[.0248,.0200],
+    [-.0380,-.0200],[-.0380,-.0172],[-.0148,.0178],[-.0120,.0178],
+    [.0218,-.0205],[.0242,-.0205],[.0300,.0018],[.0322,.0018],
+    [-.0158,-.0050],[-.0128,-.0050],[-.0098,-.0050],
+    [.0010,-.0010],[.0010,.0015],[.0010,-.0035],
+  ];
+  const capGeo=new THREE.BoxGeometry(.0014,.0016,.0020);
+  const capMesh=new THREE.InstancedMesh(capGeo,MATS.chipBlk,CAP_POSITIONS.length);
+  const cmtx=new THREE.Matrix4();
+  CAP_POSITIONS.forEach(([cx,cz],i)=>{
+    cmtx.setPosition(cx,T/2+.0008,cz);
+    capMesh.setMatrixAt(i,cmtx);
+  });
+  capMesh.instanceMatrix.needsUpdate=true;
+  capMesh.castShadow=true; board.add(capMesh);
+
+  [[-0.0264,.0102],[-.0264,.0132],[-.0264,.0082]].forEach(([cx,cz])=>{
+    bx(.0030,.0018,.0018, new THREE.MeshStandardMaterial({color:0x1a1a14,roughness:.5,metalness:.3}), cx,T/2+.001,cz);
+  });
+}
+
+// ─ SMD RESISTORS ─────────────────────────────────────────────
+{
+  const RES_POSITIONS=[
+    [-.0252,.0005],[-.0252,.0030],[-.0252,-.0025],
+    [.0382,.0010],[.0382,.0048],[.0382,-.0015],
+    [-.0398,-.0205],[-.0398,-.0178],
+    [-.0158,.0188],[-.0132,.0188],[-.0105,.0188],
+  ];
+  const resGeo=new THREE.BoxGeometry(.0020,.0010,.0012);
+  const resMesh=new THREE.InstancedMesh(resGeo,
+    new THREE.MeshStandardMaterial({color:0x2a2a1c,roughness:.62,metalness:.08}),
+    RES_POSITIONS.length);
+  const rmtx=new THREE.Matrix4();
+  RES_POSITIONS.forEach(([rx,rz],i)=>{
+    rmtx.setPosition(rx,T/2+.0005,rz);
+    resMesh.setMatrixAt(i,rmtx);
+  });
+  resMesh.instanceMatrix.needsUpdate=true; board.add(resMesh);
+}
+
+// ─ VIA ARRAYS ────────────────────────────────────────────────
+{
+  const viaGeo=new THREE.CylinderGeometry(.00055,.00055,.0016,8);
+  const VIA_POS=[];
+  for(let r=0;r<4;r++)for(let c=0;c<6;c++) VIA_POS.push([-.0238+c*.0016,-.0145+r*.0016]);
+  for(let r=0;r<3;r++)for(let c=0;c<4;c++) VIA_POS.push([-.0218+c*.0015,.0072+r*.0015]);
+  for(let r=0;r<3;r++)for(let c=0;c<4;c++) VIA_POS.push([.0088+c*.0015,-.0172+r*.0015]);
+  [[-.0302,-.0020],[-.0272,-.0058],[-.0148,.0105],[.0028,.0185],
+   [.0195,.0205],[.0282,.0028],[.0362,-.0082],[.0082,-.0185],
+   [-.0022,-.0022],[-.0062,-.0145],[.0205,-.0185],[.0322,-.0185],
+   [.0098,.0005],[-.0178,.0175],[.0252,.0168],[-.0302,.0148],[-.0398,.0048]
+  ].forEach(p=>VIA_POS.push(p));
+
+  const viaMesh=new THREE.InstancedMesh(viaGeo,MATS.gold,VIA_POS.length);
+  const viaDrillGeo=new THREE.CylinderGeometry(.00055*.45,.00055*.45,.0016,8);
+  const viaDrillMesh=new THREE.InstancedMesh(viaDrillGeo,MATS.chipBlk,VIA_POS.length);
+  const vmtx=new THREE.Matrix4();
+  VIA_POS.forEach(([vx,vz],i)=>{
+    vmtx.makeTranslation(vx,0,vz);
+    viaMesh.setMatrixAt(i,vmtx);
+    viaDrillMesh.setMatrixAt(i,vmtx);
+  });
+  viaMesh.instanceMatrix.needsUpdate=true;
+  viaDrillMesh.instanceMatrix.needsUpdate=true;
+  board.add(viaMesh); board.add(viaDrillMesh);
+}
+
+// ─ LEDs ──────────────────────────────────────────────────────
+{
+  const pwrLed=bx(.0020,.0014,.0014, MATS.ledRed, -.0398,T/2+.0007,.0225);
+  const actLed=bx(.0020,.0014,.0014, MATS.ledGreen, -.0365,T/2+.0007,.0225);
+  const pl1=new THREE.PointLight(0xff2200,.6,.025); pl1.position.set(-.0398,.003,.0225); board.add(pl1);
+  const pl2=new THREE.PointLight(0x00ff44,.7,.025); pl2.position.set(-.0365,.003,.0225); board.add(pl2);
+  hs(proxy(.006,.005,.005,-.0388,T/2+.002,.0225),'Status LEDs','Power (red) + Activity (green) indicators. Act LED flashes on SD card activity. Both LEDs software-controllable. Power LED tied to 3.3 V rail.','LED');
+}
+
+// ─ SD CARD SLOT (bottom of board) ────────────────────────────
+{
+  const sdx=.0248, sdz=.0175;
+  const sdSlot=new THREE.Mesh(new THREE.BoxGeometry(.0158,.0030,.0118),MATS.metalMid);
+  sdSlot.position.set(sdx,-T/2-.0015,sdz); sdSlot.castShadow=true; board.add(sdSlot);
+  bx(.014,.002,.0105, MATS.chipBlk, sdx,-T/2-.0015,sdz);
+  bx(.012,.0006,.0015, MATS.gold, sdx,-T/2-.001,sdz-.005);
+  hs(proxy(.018,.005,.014,sdx,-T/2-.0015,sdz),'MicroSD Card Slot','Push-push eject microSD on underside. SDIO 3.0 at up to 104 MB/s (SDR104). Sole boot device unless PCIe NVMe is used. Supports SDXC/SDUC.','SD');
+}
+
+// ─ Wi-Fi / Bluetooth Module (NEW) ────────────────────────────
+{
+  const wfx=.0020, wfz=.0120;
+  bx(.0080,.0016,.0065, MATS.wifiBody, wfx,T/2+.001,wfz);
+  // Metal shield
+  bx(.0082,.0002,.0067, MATS.metalMid, wfx,T/2+.0019,wfz);
+  // QFN leads
+  for(let i=0;i<6;i++){
+    bx(.0006,.0003,.0012, MATS.metalMid, wfx-.0035+i*.0014,T/2+.0018,wfz-.0035);
+    bx(.0006,.0003,.0012, MATS.metalMid, wfx-.0035+i*.0014,T/2+.0018,wfz+.0035);
+  }
+  hs(proxy(.010,.004,.008,wfx,T/2+.002,wfz),'Wi-Fi 5 / Bluetooth 5.0','Infineon CYW43455 wireless module. Dual-band 802.11ac (2.4 GHz & 5 GHz) Wi-Fi + Bluetooth 5.0 + BLE. Onboard PCB antenna. Supports Wi-Fi Direct and Miracast.','WIFI');
+}
+
+// ─ POWER BUTTON (NEW — Pi 5 feature) ─────────────────────────
+{
+  const pbx=-.0405, pbz=-.0210;
+  // Button housing
+  const btnBase=cyl(.0018,.0020,MATS.pwrBtn, pbx,T/2+.0010,pbz);
+  // Button cap (slightly raised, clickable feel)
+  const btnCap=cyl(.0015,.0012,MATS.pwrBtnTop, pbx,T/2+.0022,pbz);
+  // Tiny LED ring around button
+  const btnRing=new THREE.Mesh(new THREE.TorusGeometry(.0018,.0003,8,20),
+    new THREE.MeshStandardMaterial({color:0x44ff44,roughness:.3,metalness:.1,emissive:0x22cc22,emissiveIntensity:.8}));
+  btnRing.rotation.x=-Math.PI/2;
+  btnRing.position.set(pbx,T/2+.0024,pbz);
+  board.add(btnRing);
+  hs(proxy(.005,.005,.005,pbx,T/2+.003,pbz),'Power Button','Dedicated hardware power button — new to Pi 5. Short press: power on. Long press: safe shutdown. Double-tap: wake from halt. Integrated status LED ring.','PWRBTN');
+}
+
+// ─ UART DEBUG HEADER (NEW) ────────────────────────────────────
+{
+  const ux=-.0050, uz=H/2-.004;
+  bx(.0080,.0032,.0038, MATS.whitePlas, ux,T/2+.0016,uz);
+  for(let i=0;i<3;i++) cyl(.0003,.004,MATS.gold, ux-.002+i*.002,T/2+.0016+.002,uz);
+  hs(proxy(.010,.005,.006,ux,T/2+.003,uz),'UART Debug Header','3-pin UART (TX, RX, GND) for serial console access. Essential for headless debugging. 115200 baud default. JST-SH connector.','UART');
+}
+
+// ─ PoE HEADER PINS (NEW) ─────────────────────────────────────
+{
+  const pox=.0365, poz=.0245;
+  bx(.006,.0032,.005, MATS.creamPlas, pox,T/2+.0016,poz);
+  for(let r=0;r<2;r++) for(let c=0;c<2;c++){
+    cyl(.0003,.005,MATS.gold, pox-.0015+c*.003,T/2+.001+.003,poz-.0012+r*.0024);
+  }
+  hs(proxy(.008,.006,.007,pox,T/2+.003,poz),'PoE Header (J14)','4-pin Power-over-Ethernet header. Compatible with official PoE+ HAT. Supports IEEE 802.3at (25.5 W). Enables single-cable power and network.','PoE');
+}
+
+// ─ FLOOR PLANE ───────────────────────────────────────────────
+{
+  const floor=new THREE.Mesh(
+    new THREE.PlaneGeometry(.5,.5,32,32),
+    new THREE.MeshStandardMaterial({color:0x0c120e,roughness:.9,metalness:.02})
+  );
+  floor.rotation.x=-Math.PI/2; floor.position.y=-.018;
+  floor.receiveShadow=true; scene.add(floor);
+
+  const grid=new THREE.GridHelper(.35,28,0x1a2e1f,0x0e1a10);
+  grid.position.y=-.0185; scene.add(grid);
+
+  const glow=new THREE.Mesh(new THREE.PlaneGeometry(.12,.08),
+    new THREE.MeshBasicMaterial({color:0x1a6035,transparent:true,opacity:.06,side:THREE.DoubleSide}));
+  glow.rotation.x=-Math.PI/2; glow.position.y=-.014; scene.add(glow);
+}
+
+// ─ FLOATING LABEL SPRITES ────────────────────────────────────
+function makeSprite(title,sub){
+  const SW=280,SH=sub?72:50;
+  const cv=document.createElement('canvas'); cv.width=SW; cv.height=SH;
+  const c=cv.getContext('2d');
+  function rr(x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);c.lineTo(x+w,y+h-r);c.arcTo(x+w,y+h,x+w-r,y+h,r);c.lineTo(x+r,y+h);c.arcTo(x,y+h,x,y+h-r,r);c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);c.closePath()}
+  c.fillStyle='rgba(8,14,10,.9)'; rr(0,0,SW,SH,5); c.fill();
+  c.strokeStyle='rgba(198,241,53,.7)';c.lineWidth=1.2; rr(1,1,SW-2,SH-2,4); c.stroke();
+  c.fillStyle='#c6f135'; c.font='bold 20px monospace'; c.textAlign='center';
+  c.fillText(title,SW/2,sub?24:30);
+  if(sub){c.fillStyle='rgba(160,195,165,.8)';c.font='14px monospace';c.fillText(sub,SW/2,50)}
+  const tex=new THREE.CanvasTexture(cv);
+  const mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:false});
+  const sp=new THREE.Sprite(mat);
+  sp.scale.set(.028,sub?.0073:.0052,1);
+  return sp;
+}
+const labelData=[
+  {t:'BCM2712',s:'Cortex-A76 × 4',x:-.0085,y:.0085,z:.002},
+  {t:'RAM 4/8G',s:'LPDDR4X',x:.0140,y:.0082,z:-.0105},
+  {t:'RP1',s:'South Bridge',x:.0178,y:.0082,z:.0105},
+  {t:'GPIO 40-pin',s:'HAT+ Interface',x:-.0096,y:.0090,z:-.0238},
+  {t:'USB 3.0',s:'5 Gbps × 2',x:.0425,y:.0120,z:-.0130},
+  {t:'Ethernet',s:'Gigabit',x:.0435,y:.0120,z:.0210},
+  {t:'HDMI 0+1',s:'4K@60Hz × 2',x:-.0188,y:.0100,z:.030},
+  {t:'USB-C 25W',s:'PD 3.0',x:-.0388,y:.0100,z:.030},
+  {t:'PCIe Gen2',s:'× 1 FPC',x:-.048,y:.0082,z:-.0048},
+  {t:'PMIC',s:'DA9091',x:-.0280,y:.0082,z:.0110},
+  {t:'Wi-Fi/BT',s:'CYW43455',x:.0020,y:.0072,z:.0120},
+  {t:'PWR BTN',s:'On/Off',x:-.0405,y:.0072,z:-.0210},
+];
+const labelGroup=new THREE.Group();
+labelData.forEach(({t,s,x,y,z})=>{
+  const sp=makeSprite(t,s); sp.position.set(x,y,z); labelGroup.add(sp);
+});
+labelGroup.visible=false;
+scene.add(labelGroup);
+
+// ─ Store original positions ───────────────────────────────────
+board.children.forEach(c=>{if(c.position)origPos.set(c.uuid,c.position.clone())});
+
+// ─ Raycasting ─────────────────────────────────────────────────
+const rc=new THREE.Raycaster(), mouse=new THREE.Vector2();
+const tip=document.getElementById('tip'),tt=document.getElementById('tt'),
+      td=document.getElementById('td'),tg=document.getElementById('tg');
+let hovObj=null;
+
+renderer.domElement.addEventListener('mousemove',e=>{
+  const rect=renderer.domElement.getBoundingClientRect();
+  mouse.x=((e.clientX-rect.left)/rect.width)*2-1;
+  mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
+  rc.setFromCamera(mouse,camera);
+  const hits=rc.intersectObjects(hotspots);
+  if(hits.length){
+    const h=hits[0].object.userData.hs;
+    if(hits[0].object!==hovObj){hovObj=hits[0].object;renderer.domElement.style.cursor='pointer'}
+    tt.textContent=h.title; td.textContent=h.desc; tg.textContent=h.tag;
+    let lx=e.clientX+18, ly=e.clientY-12;
+    tip.style.left=lx+'px'; tip.style.top=ly+'px';
+    tip.classList.add('on');
+    const tr=tip.getBoundingClientRect();
+    if(tr.right>window.innerWidth-10) tip.style.left=(e.clientX-tr.width-18)+'px';
+    if(tr.bottom>window.innerHeight-10) tip.style.top=(e.clientY-tr.height-5)+'px';
+  } else { hovObj=null; renderer.domElement.style.cursor=''; tip.classList.remove('on') }
+});
+
+// ─ Explode Data ───────────────────────────────────────────────
+const EXPLODE_DATA=[];
+function buildExplodeData(){
+  board.children.forEach((child,i)=>{
+    if(!origPos.has(child.uuid))return;
+    const p=origPos.get(child.uuid);
+    const dx=p.x, dy=p.y, dz=p.z;
+    const dist=Math.sqrt(dx*dx+dz*dz)+.001;
+    EXPLODE_DATA.push({child, nx:dx/dist, ny:1+i*.02, nz:dz/dist});
+  });
+}
+buildExplodeData();
+
+// ─ UI Handlers ───────────────────────────────────────────────
+function resetCam(){orb._s.set(.20,1.05,.58);orb._sd.set(0,0,0);orb._pan.set(0,0,0);orb._scale=1;orb.target.set(0,0,0)}
+function setV(v){
+  if(v==='top')   orb._s.set(.14,.12,0);
+  if(v==='iso')   orb._s.set(.22,.85,.9);
+  if(v==='front') orb._s.set(.22,Math.PI/2,Math.PI*.52);
+  if(v==='back')  orb._s.set(.22,Math.PI/2,-Math.PI*.52);
+  orb._sd.set(0,0,0);
+}
+
+function toggleWire(){
+  wireMode=!wireMode;
+  document.getElementById('wBtn').classList.toggle('on',wireMode);
+  board.traverse(c=>{if(c.isMesh&&c.material&&c.material!==MATS.invisible)c.material.wireframe=wireMode});
+}
+
+function toggleXray(){
+  xrayMode=!xrayMode;
+  document.getElementById('xBtn').classList.toggle('on',xrayMode);
+  board.traverse(c=>{
+    if(c.isMesh&&c.material&&c.material!==MATS.invisible){
+      c.material.transparent=xrayMode;
+      c.material.opacity=xrayMode?.35:1;
+      c.material.depthWrite=!xrayMode;
+      c.material.needsUpdate=true;
+    }
+  });
+}
+
+function toggleExplode(){
+  explodeMode=!explodeMode; explodeTgt2=explodeMode?.05:0;
+  document.getElementById('exBtn').classList.toggle('on',explodeMode);
+}
+
+function toggleLabels(){
+  labelGroup.visible=!labelGroup.visible;
+  document.getElementById('lBtn').classList.toggle('on',labelGroup.visible);
+}
+
+function toggleAuto(){
+  autoRotate=!autoRotate;
+  document.getElementById('auBtn').classList.toggle('on',autoRotate);
+  document.getElementById('auBtn').textContent=autoRotate?'Auto ⏸':'Auto ▶';
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  const k=e.key.toLowerCase();
+  if(k==='l') toggleLabels();
+  if(k==='r') resetCam();
+  if(k==='w') toggleWire();
+  if(k==='x') toggleXray();
+  if(k==='e') toggleExplode();
+  if(k==='a') toggleAuto();
+  if(k==='h') document.getElementById('help-overlay').classList.toggle('show');
+});
+
+window.addEventListener('resize',()=>{
+  camera.aspect=wrap.clientWidth/wrap.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(wrap.clientWidth,wrap.clientHeight);
+});
+
+// ─ Loading ───────────────────────────────────────────────────
+let ldProg=0;
+const ldBar=document.getElementById('lf'), ldEl=document.getElementById('ld');
+
+(function tickLoad(){
+  ldProg+=Math.random()*15+6;
+  if(ldProg>=100){
+    ldProg=100;
+    ldBar.style.width='100%';
+    setTimeout(()=>ldEl.classList.add('done'),350);
+    return;
+  }
+  ldBar.style.width=ldProg+'%';
+  setTimeout(tickLoad,70);
+})();
+
+// ─ ANIMATION LOOP ────────────────────────────────────────────
+const clock=new THREE.Clock();
+orb._s.set(.20,1.05,.58);
+
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=clock.getDelta(); animT+=dt;
+
+  if(autoRotate) orb._sd.theta+=.28*dt;
+
+  // Floating board animation
+  board.position.y=Math.sin(animT*.65)*.0016;
+
+  // Explode animation (smooth interpolation)
+  if(Math.abs(explodeAmt-explodeTgt2)>.0001){
+    explodeAmt+=(explodeTgt2-explodeAmt)*.055;
+    EXPLODE_DATA.forEach(({child,nx,ny,nz})=>{
+      const o=origPos.get(child.uuid);
+      if(!o)return;
+      child.position.set(o.x+nx*explodeAmt,o.y+ny*explodeAmt*.5,o.z+nz*explodeAmt);
+    });
+  }
+
+  // LED pulse animations
+  MATS.ledGreen.emissiveIntensity = 1.0+Math.sin(animT*4.5+1)*.6;
+  MATS.ledRed.emissiveIntensity   = .8+Math.cos(animT*2.8)*.4;
+  MATS.ledOrange.emissiveIntensity= .7+Math.sin(animT*6+2)*.4;
+
+  // Subtle light animation
+  pt1.intensity=.5+Math.sin(animT*4.5+1)*.3;
+  pt2.intensity=.3+Math.cos(animT*2.8)*.2;
+  pt1.position.set(.04+Math.sin(animT*.3)*.005,.07,.03);
+  pt2.position.set(-.04,.05+Math.cos(animT*.4)*.003,-.03);
+
+  orb.update();
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
